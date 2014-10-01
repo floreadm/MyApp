@@ -18,6 +18,7 @@
 	<preference name="target-device" value="handset" />
 
 	<!-- Optional splash screen image, e.g.: -->
-	<!-- <gap:splash src="splash.png" width="1024" height="768" /> -->
+	<gap:splash src="splash.png" width="1024" height="768" />
+	<gap:plugin name="org.apache.cordova.splashscreen" />
 
 </widget>
