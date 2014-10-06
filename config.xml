@@ -23,8 +23,13 @@
 	<preference name="target-device" value="handset" />
 
 	<gap:plugin name="org.apache.cordova.inappbrowser" />
+	<!-- Do not auto hide splash on iOS -->
+	<preference name="AutoHideSplashScreen" value="false" />
+	<!-- Do not auto hide splash on Android -->
+	<preference name="SplashScreenDelay" value="10000"/>
 
+	<gap:plugin name="org.apache.cordova.splashscreen" />
 	<!-- Optional splash screen image, e.g.: -->
-	<gap:splash src="splash.jpg" width="1024" height="768" />
+	<gap:splash src="splash.png" width="1024" height="768" />
 
 </widget>
