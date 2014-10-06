@@ -1450,27 +1450,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 	var BATCH_SETPROGRAM = 9;
 	var BATCH_SETPROGRAMPARAMETERS = 10;
 	var BATCH_SETTEXTURE1 = 11;
-	/*
-	var lose_ext = null;
-	window.lose_context = function ()
-	{
-		if (!lose_ext)
-		{
-			console.log("WEBGL_lose_context not supported");
-			return;
-		}
-		lose_ext.loseContext();
-	};
-	window.restore_context = function ()
-	{
-		if (!lose_ext)
-		{
-			console.log("WEBGL_lose_context not supported");
-			return;
-		}
-		lose_ext.restoreContext();
-	};
-	*/
 	function GLWrap_(gl, isMobile)
 	{
 		this.isIE = /msie/i.test(navigator.userAgent) || /trident/i.test(navigator.userAgent);
@@ -1603,12 +1582,12 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.renderToTex = null;
 		this.tmpVec3 = vec3.create([0, 0, 0]);
 ;
+;
 		var pointsizes = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE);
 		this.minPointSize = pointsizes[0];
 		this.maxPointSize = pointsizes[1];
 		if (this.maxPointSize > 2048)
 			this.maxPointSize = 2048;
-;
 ;
 		this.switchProgram(0);
 		cr.seal(this);
@@ -1634,19 +1613,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.locLayerAngle = gl.getUniformLocation(shaderProgram, "layerAngle");
 		this.locViewOrigin = gl.getUniformLocation(shaderProgram, "viewOrigin");
 		this.hasAnyOptionalUniforms = !!(this.locPixelWidth || this.locPixelHeight || this.locSeconds || this.locSamplerBack || this.locDestStart || this.locDestEnd || this.locLayerScale || this.locLayerAngle || this.locViewOrigin);
-		this.lpPixelWidth = -999;		// set to something unlikely so never counts as cached on first set
-		this.lpPixelHeight = -999;
-		this.lpOpacity = 1;
-		this.lpDestStartX = 0.0;
-		this.lpDestStartY = 0.0;
-		this.lpDestEndX = 1.0;
-		this.lpDestEndY = 1.0;
-		this.lpLayerScale = 1.0;
-		this.lpLayerAngle = 0.0;
-		this.lpViewOriginX = 0.0;
-		this.lpViewOriginY = 0.0;
-		this.lastCustomParams = [];
-		this.lpMatMV = mat4.create();
 		if (this.locOpacity)
 			gl.uniform1f(this.locOpacity, 1);
 		if (this.locSamplerFront)
@@ -1664,20 +1630,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		if (this.locViewOrigin)
 			gl.uniform2f(this.locViewOrigin, 0.0, 0.0);
 		this.hasCurrentMatMV = false;		// matMV needs updating
-	};
-	function areMat4sEqual(a, b)
-	{
-		return a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2]&&a[3]===b[3]&&
-			   a[4]===b[4]&&a[5]===b[5]&&a[6]===b[6]&&a[7]===b[7]&&
-			   a[8]===b[8]&&a[9]===b[9]&&a[10]===b[10]&&a[11]===b[11]&&
-			   a[12]===b[12]&&a[13]===b[13]&&a[14]===b[14]&&a[15]===b[15];
-	};
-	GLShaderProgram.prototype.updateMatMV = function (mv)
-	{
-		if (areMat4sEqual(this.lpMatMV, mv))
-			return;		// no change, save the expensive GL call
-		mat4.set(mv, this.lpMatMV);
-		this.gl.uniformMatrix4fv(this.locMatMV, false, mv);
 	};
 	GLWrap_.prototype.createShaderProgram = function(shaderEntry, vsSource, name)
 	{
@@ -1714,6 +1666,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			return null;
 		}
 		gl.useProgram(shaderProgram);
+;
 		gl.deleteShader(fragmentShader);
 		gl.deleteShader(vertexShader);
 		var ret = new GLShaderProgram(gl, shaderProgram, name);
@@ -1726,7 +1679,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		for (i = 0, len = ret.parameters.length; i < len; i++)
 		{
 			ret.parameters[i][1] = gl.getUniformLocation(shaderProgram, ret.parameters[i][0]);
-			ret.lastCustomParams.push(0);
 			gl.uniform1f(ret.parameters[i][1], 0);
 		}
 		cr.seal(ret);
@@ -1890,11 +1842,8 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		var glwrap = this.glwrap;
 		glwrap.currentOpacity = o;
 		var curProg = glwrap.currentShader;
-		if (curProg.locOpacity && curProg.lpOpacity !== o)
-		{
-			curProg.lpOpacity = o;
+		if (curProg.locOpacity)
 			this.gl.uniform1f(curProg.locOpacity, o);
-		}
 	};
 	GLBatchJob.prototype.doQuad = function ()
 	{
@@ -1912,7 +1861,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			s = shaderPrograms[i];
 			if (i === currentProgram && s.locMatMV)
 			{
-				s.updateMatMV(this.mat4param);
+				this.gl.uniformMatrix4fv(s.locMatMV, false, this.mat4param);
 				s.hasCurrentMatMV = true;
 			}
 			else
@@ -1967,7 +1916,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		gl.useProgram(s.shaderProgram);
 		if (!s.hasCurrentMatMV && s.locMatMV)
 		{
-			s.updateMatMV(glwrap.currentMV);
+			gl.uniformMatrix4fv(s.locMatMV, false, glwrap.currentMV);
 			s.hasCurrentMatMV = true;
 		}
 		gl.enableVertexAttribArray(s.locAPos);
@@ -1999,14 +1948,11 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		gl.useProgram(s.shaderProgram);						// switch to
 		if (!s.hasCurrentMatMV && s.locMatMV)
 		{
-			s.updateMatMV(glwrap.currentMV);
+			gl.uniformMatrix4fv(s.locMatMV, false, glwrap.currentMV);
 			s.hasCurrentMatMV = true;
 		}
-		if (s.locOpacity && s.lpOpacity !== glwrap.currentOpacity)
-		{
-			s.lpOpacity = glwrap.currentOpacity;
+		if (s.locOpacity)
 			gl.uniform1f(s.locOpacity, glwrap.currentOpacity);
-		}
 		if (s.locAPos >= 0)
 		{
 			gl.enableVertexAttribArray(s.locAPos);
@@ -2032,67 +1978,27 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			this.glwrap.lastTexture1 = this.texParam;
 			gl.activeTexture(gl.TEXTURE0);
 		}
-		var v = mat4param[0];
-		var v2;
-		if (s.locPixelWidth && v !== s.lpPixelWidth)
-		{
-			s.lpPixelWidth = v;
-			gl.uniform1f(s.locPixelWidth, v);
-		}
-		v = mat4param[1];
-		if (s.locPixelHeight && v !== s.lpPixelHeight)
-		{
-			s.lpPixelHeight = v;
-			gl.uniform1f(s.locPixelHeight, v);
-		}
-		v = mat4param[2];
-		v2 = mat4param[3];
-		if (s.locDestStart && (v !== s.lpDestStartX || v2 !== s.lpDestStartY))
-		{
-			s.lpDestStartX = v;
-			s.lpDestStartY = v2;
-			gl.uniform2f(s.locDestStart, v, v2);
-		}
-		v = mat4param[4];
-		v2 = mat4param[5];
-		if (s.locDestEnd && (v !== s.lpDestEndX || v2 !== s.lpDestEndY))
-		{
-			s.lpDestEndX = v;
-			s.lpDestEndY = v;
-			gl.uniform2f(s.locDestEnd, v, v2);
-		}
-		v = mat4param[6];
-		if (s.locLayerScale && v !== s.lpLayerScale)
-		{
-			s.lpLayerScale = v;
-			gl.uniform1f(s.locLayerScale, v);
-		}
-		v = mat4param[7];
-		if (s.locLayerAngle && v !== s.lpLayerAngle)
-		{
-			s.lpLayerAngle = v;
-			gl.uniform1f(s.locLayerAngle, v);
-		}
-		v = mat4param[8];
-		v2 = mat4param[9];
-		if (s.locViewOrigin && (v !== s.lpViewOriginX || v !== s.lpViewOriginY))
-		{
-			s.lpViewOriginX = v;
-			s.lpViewOriginY = v2;
-			gl.uniform2f(s.locViewOrigin, v, v2);
-		}
+		if (s.locPixelWidth)
+			gl.uniform1f(s.locPixelWidth, mat4param[0]);
+		if (s.locPixelHeight)
+			gl.uniform1f(s.locPixelHeight, mat4param[1]);
+		if (s.locDestStart)
+			gl.uniform2f(s.locDestStart, mat4param[2], mat4param[3]);
+		if (s.locDestEnd)
+			gl.uniform2f(s.locDestEnd, mat4param[4], mat4param[5]);
+		if (s.locLayerScale)
+			gl.uniform1f(s.locLayerScale, mat4param[6]);
+		if (s.locLayerAngle)
+			gl.uniform1f(s.locLayerAngle, mat4param[7]);
+		if (s.locViewOrigin)
+			gl.uniform2f(s.locViewOrigin, mat4param[8], mat4param[9]);
 		if (s.locSeconds)
 			gl.uniform1f(s.locSeconds, cr.performance_now() / 1000.0);
 		if (s.parameters.length)
 		{
 			for (i = 0, len = s.parameters.length; i < len; i++)
 			{
-				v = this.shaderParams[i];
-				if (v !== s.lastCustomParams[i])
-				{
-					s.lastCustomParams[i] = v;
-					gl.uniform1f(s.parameters[i][1], v);
-				}
+				gl.uniform1f(s.parameters[i][1], this.shaderParams[i]);
 			}
 		}
 	};
@@ -2541,11 +2447,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 	}
 	var all_textures = [];
 	var textures_by_src = {};
-	GLWrap_.prototype.contextLost = function ()
-	{
-		all_textures.length = 0;
-		textures_by_src = {};
-	};
 	var BF_RGBA8 = 0;
 	var BF_RGB8 = 1;
 	var BF_RGBA4 = 2;
@@ -2695,14 +2596,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			_16bit = false;
 		gl.bindTexture(gl.TEXTURE_2D, texture_);
 		gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], true);
-		try {
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, _16bit ? gl.UNSIGNED_SHORT_4_4_4_4 : gl.UNSIGNED_BYTE, video_);
-		}
-		catch (e)
-		{
-			if (console && console.error)
-				console.error("Error updating WebGL texture: ", e);
-		}
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, _16bit ? gl.UNSIGNED_SHORT_4_4_4_4 : gl.UNSIGNED_BYTE, video_);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		this.lastTexture0 = null;
 	};
@@ -2765,20 +2659,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 ;
 (function()
 {
-	function window_innerWidth()
-	{
-		if (typeof jQuery !== "undefined")
-			return jQuery(window).width();
-		else
-			return window.innerWidth;
-	};
-	function window_innerHeight()
-	{
-		if (typeof jQuery !== "undefined")
-			return jQuery(window).height();
-		else
-			return window.innerHeight;
-	};
 	function Runtime(canvas)
 	{
 		if (!canvas || (!canvas.getContext && !canvas["dc"]))
@@ -2789,7 +2669,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			canvas["c2runtime"] = this;
 		var self = this;
 		this.isCrosswalk = /crosswalk/i.test(navigator.userAgent) || /xwalk/i.test(navigator.userAgent) || !!(typeof window["c2isCrosswalk"] !== "undefined" && window["c2isCrosswalk"]);
-		this.isPhoneGap = this.isCrosswalk || (typeof window["device"] !== "undefined" && (typeof window["device"]["cordova"] !== "undefined" || typeof window["device"]["phonegap"] !== "undefined")) || (typeof window["c2isphonegap"] !== "undefined" && window["c2isphonegap"]);
+		this.isPhoneGap = (!this.isCrosswalk && (typeof window["device"] !== "undefined" && (typeof window["device"]["cordova"] !== "undefined" || typeof window["device"]["phonegap"] !== "undefined"))) || (typeof window["c2isphonegap"] !== "undefined" && window["c2isphonegap"]);
 		this.isDirectCanvas = !!canvas["dc"];
 		this.isAppMobi = (typeof window["AppMobi"] !== "undefined" || this.isDirectCanvas);
 		this.isCocoonJs = !!window["c2cocoonjs"];
@@ -2823,7 +2703,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.isiPad = /ipad/i.test(navigator.userAgent);
 		this.isiOS = this.isiPhone || this.isiPad || this.isEjecta;
 		this.isiPhoneiOS6 = (this.isiPhone && /os\s6/i.test(navigator.userAgent));
-		this.isChrome = /chrome/i.test(navigator.userAgent) || /chromium/i.test(navigator.userAgent);	// note true on Chromium-based webview on Android 4.4+
+		this.isChrome = /chrome/i.test(navigator.userAgent) || /chromium/i.test(navigator.userAgent);
 		this.isAmazonWebApp = /amazonwebappplatform/i.test(navigator.userAgent);
 		this.isFirefox = /firefox/i.test(navigator.userAgent);
 		this.isSafari = /safari/i.test(navigator.userAgent) && !this.isChrome && !this.isIE;		// Chrome and IE Mobile masquerade as Safari
@@ -2836,7 +2716,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.isWindowsPhone81 = !!(typeof window["c2isWindowsPhone81"] !== "undefined" && window["c2isWindowsPhone81"]);
 		this.isWinJS = (this.isWindows8App || this.isWindows8Capable || this.isWindowsPhone81);	// note not WP8.0
 		this.isBlackberry10 = !!(typeof window["c2isBlackberry10"] !== "undefined" && window["c2isBlackberry10"]);
-		this.isAndroidStockBrowser = (this.isAndroid && !this.isChrome && !this.isCrosswalk && !this.isFirefox && !this.isAmazonWebApp && !this.isDomFree);
+		this.isAndroidStockBrowser = (this.isAndroid && !this.isChrome && !this.isFirefox && !this.isAmazonWebApp && !this.isDomFree);
 		this.devicePixelRatio = 1;
 		this.isMobile = (this.isPhoneGap || this.isCrosswalk || this.isAppMobi || this.isCocoonJs || this.isAndroid || this.isiOS || this.isWindowsPhone8 || this.isWindowsPhone81 || this.isBlackberry10 || this.isTizen || this.isEjecta);
 		if (!this.isMobile)
@@ -2866,10 +2746,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			window["ondragover"] = function(e) { e.preventDefault(); return false; };
 			window["ondrop"] = function(e) { e.preventDefault(); return false; };
 			require("nw.gui")["App"]["clearCache"]();
-		}
-		if (this.isAndroidStockBrowser && typeof jQuery !== "undefined")
-		{
-			jQuery("canvas").parents("*").css("overflow", "visible");
 		}
 		this.width = canvas.width;
 		this.height = canvas.height;
@@ -2988,9 +2864,9 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.devicePixelRatio = (this.isRetina ? (window["devicePixelRatio"] || window["webkitDevicePixelRatio"] || window["mozDevicePixelRatio"] || window["msDevicePixelRatio"] || 1) : 1);
 		this.ClearDeathRow();
 		var attribs;
-		var alpha_canvas = this.alphaBackground && !(this.isNodeWebkit || this.isWinJS || this.isWindowsPhone8 || this.isCrosswalk || this.isPhoneGap);
+		var alpha_canvas = this.alphaBackground && !(this.isNodeWebkit || this.isWinJS || this.isWindowsPhone8 || this.isCrosswalk);
 		if (this.fullscreen_mode > 0)
-			this["setSize"](window_innerWidth(), window_innerHeight(), true);
+			this["setSize"](window.innerWidth, window.innerHeight, true);
 		try {
 			if (this.enableWebGL && (this.isCocoonJs || this.isEjecta || !this.isDomFree))
 			{
@@ -3007,6 +2883,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		}
 		if (this.gl)
 		{
+;
 			if (!this.isDomFree)
 			{
 				this.overlay_canvas = document.createElement("canvas");
@@ -3170,7 +3047,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		{
 			document.addEventListener("touchstart", unfocusFormControlFunc);
 		}
-		document.addEventListener("mousedown", unfocusFormControlFunc);
 		if (this.fullscreen_mode === 0 && this.isRetina && this.devicePixelRatio > 1)
 		{
 			this["setSize"](this.original_width, this.original_height, true);
@@ -3401,7 +3277,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 	};
 	Runtime.prototype.onContextLost = function ()
 	{
-		this.glwrap.contextLost();
 		this.is_WebGL_context_lost = true;
 		var i, len, t;
 		for (i = 0, len = this.types_by_index.length; i < len; i++)
@@ -3686,9 +3561,9 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 				familytype.members.push(familymember);
 			}
 		}
-		for (i = 0, len = pm[27].length; i < len; i++)
+		for (i = 0, len = pm[26].length; i < len; i++)
 		{
-			var containerdata = pm[27][i];
+			var containerdata = pm[26][i];
 			var containertypes = [];
 			for (j = 0, lenj = containerdata.length; j < lenj; j++)
 				containertypes.push(this.types_by_index[containerdata[j]]);
@@ -3768,7 +3643,6 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		this.fullscreenScalingQuality = this.wantFullscreenScalingQuality;
 		this.downscalingQuality = pm[24];	// 0 = low (mips off), 1 = medium (mips on, dense spritesheet), 2 = high (mips on, sparse spritesheet)
 		this.preloadSounds = pm[25];		// 0 = no, 1 = yes
-		this.projectName = pm[26];
 		this.start_time = Date.now();
 	};
 	var anyImageHadError = false;
@@ -4005,7 +3879,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 			var curheight = window.innerHeight;
 			if (this.lastWindowWidth !== curwidth || this.lastWindowHeight !== curheight)
 			{
-				this["setSize"](window_innerWidth(), window_innerHeight());
+					this["setSize"](curwidth, curheight);
 			}
 		}
 		if (!this.isDomFree)
@@ -5206,7 +5080,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		for (i = 0, len = candidates.length; i < len; ++i)
 		{
 			s = candidates[i];
-			if (!s.extra["solidEnabled"])
+			if (!s.extra.solidEnabled)
 				continue;
 			if (this.testOverlap(inst, s))
 			{
@@ -5224,7 +5098,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		for (i = 0, len = candidates.length; i < len; ++i)
 		{
 			s = candidates[i];
-			if (!s.extra["solidEnabled"])
+			if (!s.extra.solidEnabled)
 				continue;
 			if (this.testRectOverlap(r, s))
 			{
@@ -5250,7 +5124,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		for (i = 0, len = candidates.length; i < len; ++i)
 		{
 			j = candidates[i];
-			if (!j.extra["jumpthruEnabled"])
+			if (!j.extra.jumpthruEnabled)
 				continue;
 			if (this.testOverlap(inst, j))
 			{
@@ -6542,11 +6416,6 @@ window["cr_setSuspended"] = function(s)
 		return null;
 	};
 	var created_instances = [];
-	function sort_by_zindex(a, b)
-	{
-		return a.zindex - b.zindex;
-	};
-	var first_layout = true;
 	Layout.prototype.startRunning = function ()
 	{
 		if (this.sheetname)
@@ -6580,13 +6449,6 @@ window["cr_setSuspended"] = function(s)
 				}
 			}
 		}
-		if (!first_layout)
-		{
-			for (i = 0, len = this.layers.length; i < len; ++i)
-			{
-				this.layers[i].instances.sort(sort_by_zindex);
-			}
-		}
 		var layer;
 		created_instances.length = 0;
 		this.boundScrolling();
@@ -6600,8 +6462,8 @@ window["cr_setSuspended"] = function(s)
 			layer.disableAngle = false;
 			if (this.runtime.pixel_rounding)
 			{
-				px = Math.round(px);
-				py = Math.round(py);
+				px = (px + 0.5) | 0;
+				py = (py + 0.5) | 0;
 			}
 			layer.rotateViewport(px, py, null);
 		}
@@ -6635,7 +6497,7 @@ window["cr_setSuspended"] = function(s)
 			}
 			for (i = 0, len = this.layers.length; i < len; i++)
 			{
-				this.layers[i].instances.sort(sort_by_zindex);
+				this.layers[i].instances.sort(sortInstanceByZIndex);
 				this.layers[i].zindices_stale = true;		// in case of duplicates/holes
 			}
 		}
@@ -6737,7 +6599,6 @@ window["cr_setSuspended"] = function(s)
 		var layer_instances, inst, type;
 		for (i = 0, leni = this.layers.length; i < leni; i++)
 		{
-			this.layers[i].updateZIndices();
 			layer_instances = this.layers[i].instances;
 			for (j = 0, lenj = layer_instances.length; j < lenj; j++)
 			{
@@ -6746,17 +6607,6 @@ window["cr_setSuspended"] = function(s)
 				{
 					if (this.runtime.typeHasPersistBehavior(inst.type))
 						this.saveObjectToPersist(inst);
-				}
-			}
-		}
-		for (i = 0, leni = this.layers.length; i < leni; i++)
-		{
-			layer_instances = this.layers[i].instances;
-			for (j = 0, lenj = layer_instances.length; j < lenj; j++)
-			{
-				inst = layer_instances[j];
-				if (!inst.type.global)
-				{
 					this.runtime.DestroyInstance(inst);
 				}
 			}
@@ -6773,7 +6623,6 @@ window["cr_setSuspended"] = function(s)
 				this.runtime.DestroyInstance(type.instances[j]);
 			this.runtime.ClearDeathRow();
 		}
-		first_layout = false;
 	};
 	Layout.prototype.draw = function (ctx)
 	{
@@ -7525,8 +7374,8 @@ window["cr_setSuspended"] = function(s)
 		this.disableAngle = false;
 		if (this.runtime.pixel_rounding)
 		{
-			px = Math.round(px);
-			py = Math.round(py);
+			px = (px + 0.5) | 0;
+			py = (py + 0.5) | 0;
 		}
 		this.rotateViewport(px, py, layer_ctx);
 		var myscale = this.getScale();
@@ -7612,8 +7461,8 @@ window["cr_setSuspended"] = function(s)
 		this.disableAngle = false;
 		if (this.runtime.pixel_rounding)
 		{
-			px = Math.round(px);
-			py = Math.round(py);
+			px = (px + 0.5) | 0;
+			py = (py + 0.5) | 0;
 		}
 		this.rotateViewport(px, py, null);
 		var myscale = this.getScale();
@@ -7845,6 +7694,10 @@ window["cr_setSuspended"] = function(s)
 		}
 		return o;
 	};
+	function sortInstanceByZIndex(a, b)
+	{
+		return a.zindex - b.zindex;
+	};
 	Layer.prototype.loadFromJSON = function (o)
 	{
 		var i, len, p, inst, fx;
@@ -7871,7 +7724,7 @@ window["cr_setSuspended"] = function(s)
 			this.effect_params[fx.index] = ofx[i]["params"];
 		}
 		this.updateActiveEffects();
-		this.instances.sort(sort_by_zindex);
+		this.instances.sort(sortInstanceByZIndex);
 		this.zindices_stale = true;
 	};
 	cr.layer = Layer;
@@ -10097,11 +9950,11 @@ cr.system_object.prototype.loadFromJSON = function (o)
         if (cmp === 0)
         {
             var cnd = this.runtime.getCurrentCondition();
-            if (!cnd.extra["CompareTime_executed"])
+            if (!cnd.extra.CompareTime_executed)
             {
                 if (elapsed >= t)
                 {
-                    cnd.extra["CompareTime_executed"] = true;
+                    cnd.extra.CompareTime_executed = true;
                     return true;
                 }
             }
@@ -10304,8 +10157,8 @@ cr.system_object.prototype.loadFromJSON = function (o)
     };
 	function foreach_sortinstances(a, b)
 	{
-		var va = a.extra["c2_feo_val"];
-		var vb = b.extra["c2_feo_val"];
+		var va = a.extra.c2_foreachordered_val;
+		var vb = b.extra.c2_foreachordered_val;
 		if (cr.is_number(va) && cr.is_number(vb))
 			return va - vb;
 		else
@@ -10336,7 +10189,7 @@ cr.system_object.prototype.loadFromJSON = function (o)
 		var i, len, j, lenj, inst, s, sol2;
 		for (i = 0, len = instances.length; i < len; i++)
 		{
-			instances[i].extra["c2_feo_val"] = current_condition.parameters[1].get(i);
+			instances[i].extra.c2_foreachordered_val = current_condition.parameters[1].get(i);
 		}
 		instances.sort(foreach_sortinstances);
 		if (order === 1)
@@ -10472,34 +10325,34 @@ cr.system_object.prototype.loadFromJSON = function (o)
     SysCnds.prototype.TriggerOnce = function ()
     {
         var cndextra = this.runtime.getCurrentCondition().extra;
-		if (typeof cndextra["TriggerOnce_lastTick"] === "undefined")
-			cndextra["TriggerOnce_lastTick"] = -1;
-        var last_tick = cndextra["TriggerOnce_lastTick"];
+		if (typeof cndextra.TriggerOnce_lastTick === "undefined")
+			cndextra.TriggerOnce_lastTick = -1;
+        var last_tick = cndextra.TriggerOnce_lastTick;
         var cur_tick = this.runtime.tickcount;
-        cndextra["TriggerOnce_lastTick"] = cur_tick;
+        cndextra.TriggerOnce_lastTick = cur_tick;
         return this.runtime.layout_first_tick || last_tick !== cur_tick - 1;
     };
     SysCnds.prototype.Every = function (seconds)
     {
         var cnd = this.runtime.getCurrentCondition();
-        var last_time = cnd.extra["Every_lastTime"] || 0;
+        var last_time = cnd.extra.Every_lastTime || 0;
         var cur_time = this.runtime.kahanTime.sum;
-		if (typeof cnd.extra["Every_seconds"] === "undefined")
-			cnd.extra["Every_seconds"] = seconds;
-		var this_seconds = cnd.extra["Every_seconds"];
+		if (typeof cnd.extra.Every_seconds === "undefined")
+			cnd.extra.Every_seconds = seconds;
+		var this_seconds = cnd.extra.Every_seconds;
         if (cur_time >= last_time + this_seconds)
         {
-            cnd.extra["Every_lastTime"] = last_time + this_seconds;
-			if (cur_time >= cnd.extra["Every_lastTime"] + 0.04)
+            cnd.extra.Every_lastTime = last_time + this_seconds;
+			if (cur_time >= cnd.extra.Every_lastTime + 0.04)
 			{
-				cnd.extra["Every_lastTime"] = cur_time;
+				cnd.extra.Every_lastTime = cur_time;
 			}
-			cnd.extra["Every_seconds"] = seconds;
+			cnd.extra.Every_seconds = seconds;
             return true;
         }
 		else if (cur_time < last_time - 0.1)
 		{
-			cnd.extra["Every_lastTime"] = cur_time;
+			cnd.extra.Every_lastTime = cur_time;
 		}
 		return false;
     };
@@ -11693,10 +11546,6 @@ cr.system_object.prototype.loadFromJSON = function (o)
 	{
 		ret.set_string(this.runtime.versionstr);
 	};
-	SysExps.prototype.projectname = function (ret)
-	{
-		ret.set_string(this.runtime.projectName);
-	};
 	SysExps.prototype.anglelerp = function (ret, a, b, x)
 	{
 		a = cr.to_radians(a);
@@ -11864,14 +11713,6 @@ cr.system_object.prototype.loadFromJSON = function (o)
 		n = n | 0;
 		b = b | 0;
 		ret.set_int((n & (1 << b)) ? 1 : 0);
-	};
-	SysExps.prototype.originalwindowwidth = function (ret)
-	{
-		ret.set_int(this.runtime.original_width);
-	};
-	SysExps.prototype.originalwindowheight = function (ret)
-	{
-		ret.set_int(this.runtime.original_height);
 	};
 	sysProto.exps = new SysExps();
 	sysProto.runWaits = function ()
@@ -12859,7 +12700,7 @@ cr.system_object.prototype.loadFromJSON = function (o)
 				{
 					if (behname === f.behaviors[j].name)
 					{
-						this.extra["lastBehIndex"] = index;
+						this.extra.lastBehIndex = index;
 						return f.behaviors[j];
 					}
 					index++;
@@ -12869,7 +12710,7 @@ cr.system_object.prototype.loadFromJSON = function (o)
 		for (i = 0, len = this.behaviors.length; i < len; i++) {
 			if (behname === this.behaviors[i].name)
 			{
-				this.extra["lastBehIndex"] = index;
+				this.extra.lastBehIndex = index;
 				return this.behaviors[i];
 			}
 			index++;
@@ -12880,7 +12721,7 @@ cr.system_object.prototype.loadFromJSON = function (o)
 	{
 		var b = this.getBehaviorByName(behname);
 		if (b)
-			return this.extra["lastBehIndex"];
+			return this.extra.lastBehIndex;
 		else
 			return -1;
 	};
@@ -14730,7 +14571,6 @@ cr.plugins_.Audio = function(runtime)
 		this.pauseWhenReady = false;
 		this.supportWebAudioAPI = false;
 		this.failedToLoad = false;
-		this.wasEverReady = false;	// if a buffer is ever marked as ready, it's permanently considered ready after then.
 		if (api === API_WEBAUDIO && is_music)
 		{
 			this.myapi = API_HTML5;
@@ -14742,9 +14582,6 @@ cr.plugins_.Audio = function(runtime)
 		switch (this.myapi) {
 		case API_HTML5:
 			this.bufferObject = new Audio();
-			this.bufferObject.addEventListener("canplaythrough", function () {
-				self.wasEverReady = true;	// update loaded state so preload is considered complete
-			});
 			if (api === API_WEBAUDIO && context["createMediaElementSource"] && !audRuntime.isFirefox && !/wiiu/i.test(navigator.userAgent))
 			{
 				this.supportWebAudioAPI = true;		// can be routed through web audio api
@@ -14791,7 +14628,6 @@ cr.plugins_.Audio = function(runtime)
 		{
 			context["decodeAudioData"](this.audioData, function (buffer) {
 					self.bufferObject = buffer;
-					self.audioData = null;		// clear AJAX response to allow GC and save memory, only need the bufferObject now
 					var p, i, len, a;
 					if (!cr.is_undefined(self.playTagWhenReady) && !silent)
 					{
@@ -14848,7 +14684,6 @@ cr.plugins_.Audio = function(runtime)
 		else
 		{
 			this.bufferObject = context["createBuffer"](this.audioData, false);
-			this.audioData = null;		// clear AJAX response to allow GC and save memory, only need the bufferObject now
 			if (!cr.is_undefined(this.playTagWhenReady) && !silent)
 			{
 				var a = new C2AudioInstance(this, this.playTagWhenReady);
@@ -14869,12 +14704,9 @@ cr.plugins_.Audio = function(runtime)
 	{
 		switch (this.myapi) {
 		case API_HTML5:
-			var ret = this.bufferObject["readyState"] >= 4;	// HAVE_ENOUGH_DATA
-			if (ret)
-				this.wasEverReady = true;
-			return ret || this.wasEverReady;
+			return this.bufferObject["readyState"] >= 4;	// HAVE_ENOUGH_DATA
 		case API_WEBAUDIO:
-			return !!this.audioData || !!this.bufferObject;
+			return !!this.audioData;			// null until AJAX request completes
 		case API_PHONEGAP:
 			return true;
 		case API_APPMOBI:
@@ -14886,9 +14718,9 @@ cr.plugins_.Audio = function(runtime)
 	{
 		switch (this.myapi) {
 		case API_HTML5:
-			return this.isLoaded();		// no distinction between loaded and decoded in HTML5 audio, just rely on ready state
+			return this.bufferObject["readyState"] >= 4;	// HAVE_ENOUGH_DATA
 		case API_WEBAUDIO:
-			return !!this.bufferObject;
+			return !!this.audioData && !!this.bufferObject;
 		case API_PHONEGAP:
 			return true;
 		case API_APPMOBI:
@@ -15144,10 +14976,7 @@ cr.plugins_.Audio = function(runtime)
 				try {
 					this.instanceObject.play();
 				}
-				catch (e) {		// sometimes throws on WP8.1... try not to kill the app
-					if (console && console.log)
-						console.log("[C2] WARNING: exception trying to play audio '" + this.buffer.src + "': ", e);
-				}
+				catch (e) {}	// sometimes throws on WP8.1... try not to kill the app
 			}
 			break;
 		case API_WEBAUDIO:
@@ -15711,18 +15540,17 @@ cr.plugins_.Audio = function(runtime)
 		this.runtime.audioInstance = this;
 		timescale_mode = this.properties[0];	// 0 = off, 1 = sounds only, 2 = all
 		this.saveload = this.properties[1];		// 0 = all, 1 = sounds only, 2 = music only, 3 = none
-		this.playinbackground = (this.properties[2] !== 0);
-		panningModel = this.properties[3];		// 0 = equalpower, 1 = hrtf, 3 = soundfield
-		distanceModel = this.properties[4];		// 0 = linear, 1 = inverse, 2 = exponential
-		this.listenerZ = -this.properties[5];
-		refDistance = this.properties[6];
-		maxDistance = this.properties[7];
-		rolloffFactor = this.properties[8];
+		panningModel = this.properties[2];		// 0 = equalpower, 1 = hrtf, 3 = soundfield
+		distanceModel = this.properties[3];		// 0 = linear, 1 = inverse, 2 = exponential
+		this.listenerZ = -this.properties[4];
+		refDistance = this.properties[5];
+		maxDistance = this.properties[6];
+		rolloffFactor = this.properties[7];
 		this.listenerTracker = new ObjectTracker();
 		if (api === API_WEBAUDIO)
 		{
-			context["listener"]["speedOfSound"] = this.properties[9];
-			context["listener"]["dopplerFactor"] = this.properties[10];
+			context["listener"]["speedOfSound"] = this.properties[8];
+			context["listener"]["dopplerFactor"] = this.properties[9];
 			context["listener"]["setPosition"](this.runtime.draw_width / 2, this.runtime.draw_height / 2, this.listenerZ);
 			context["listener"]["setOrientation"](0, 0, 1, 0, -1, 0);
 			window["c2OnAudioMicStream"] = function (localMediaStream, tag)
@@ -16026,8 +15854,6 @@ cr.plugins_.Audio = function(runtime)
 	};
 	instanceProto.onSuspend = function (s)
 	{
-		if (this.playinbackground)
-			return;
 		var i, len;
 		for (i = 0, len = audioInstances.length; i < len; i++)
 			audioInstances[i].setSuspended(s);
@@ -16115,14 +15941,10 @@ cr.plugins_.Audio = function(runtime)
 		for (i = 0, len = preload_list.length; i < len; ++i)
 		{
 			p = preload_list[i];
-			if (p.obj.isLoadedAndDecoded() || p.obj.hasFailedToLoad() || this.runtime.isDomFree || this.runtime.isAndroidStockBrowser)
-			{
+			if (p.obj.isLoadedAndDecoded() || p.obj.hasFailedToLoad() || this.runtime.isDomFree)
 				completed += p.size;
-			}
 			else if (p.obj.isLoaded())	// downloaded but not decoded: only happens in Web Audio API, count as half-way progress
-			{
 				completed += Math.floor(p.size / 2);
-			}
 		};
 		return completed;
 	};
@@ -16254,7 +16076,7 @@ cr.plugins_.Audio = function(runtime)
 		var i, len;
 		for (i = 0, len = audioBuffers.length; i < len; i++)
 		{
-			if (!audioBuffers[i].isLoadedAndDecoded() && !audioBuffers[i].hasFailedToLoad())
+			if (!audioBuffers[i].isLoaded() && !audioBuffers[i].hasFailedToLoad())
 				return false;
 		}
 		return true;
@@ -17043,8 +16865,6 @@ cr.plugins_.Browser = function(runtime)
 			Windows["System"]["Launcher"]["launchUriAsync"](new Windows["Foundation"]["Uri"](url));
 		else if (navigator["app"] && navigator["app"]["loadUrl"])
 			navigator["app"]["loadUrl"](url, { "openExternal": true });
-		else if (this.runtime.isPhoneGap)
-			window.open(url, "_system");
 		else if (!this.is_arcade && !this.runtime.isDomFree)
 		{
 			if (target === 2 && !this.is_arcade)		// top
@@ -17065,8 +16885,6 @@ cr.plugins_.Browser = function(runtime)
 			Windows["System"]["Launcher"]["launchUriAsync"](new Windows["Foundation"]["Uri"](url));
 		else if (navigator["app"] && navigator["app"]["loadUrl"])
 			navigator["app"]["loadUrl"](url, { "openExternal": true });
-		else if (this.runtime.isPhoneGap)
-			window.open(url, "_system");
 		else if (!this.is_arcade && !this.runtime.isDomFree)
 			window.open(url, tag);
 	};
@@ -17077,11 +16895,12 @@ cr.plugins_.Browser = function(runtime)
 	};
 	var firstRequestFullscreen = true;
 	var crruntime = null;
-	function onFullscreenError(e)
+	function onFullscreenError()
 	{
-		if (console && console.warn)
-			console.warn("Fullscreen request failed: ", e);
-		crruntime["setSize"](window.innerWidth, window.innerHeight);
+		if (typeof jQuery !== "undefined")
+		{
+			crruntime["setSize"](jQuery(window).width(), jQuery(window).height());
+		}
 	};
 	Acts.prototype.RequestFullScreen = function (stretchmode)
 	{
@@ -17105,7 +16924,7 @@ cr.plugins_.Browser = function(runtime)
 		}
 		else
 		{
-			if (document["mozFullScreen"] || document["webkitIsFullScreen"] || !!document["msFullscreenElement"] || document["fullScreen"] || document["fullScreenElement"])
+			if (document["mozFullScreen"] || document["webkitIsFullScreen"] || !!document["msFullscreenElement"] || document["fullScreen"])
 			{
 				return;
 			}
@@ -17117,22 +16936,22 @@ cr.plugins_.Browser = function(runtime)
 				crruntime = this.runtime;
 				elem.addEventListener("mozfullscreenerror", onFullscreenError);
 				elem.addEventListener("webkitfullscreenerror", onFullscreenError);
-				elem.addEventListener("MSFullscreenError", onFullscreenError);
+				elem.addEventListener("msfullscreenerror", onFullscreenError);
 				elem.addEventListener("fullscreenerror", onFullscreenError);
 			}
-			if (elem["requestFullscreen"])
+			if (!cr.is_undefined(elem["requestFullscreen"]))
 				elem["requestFullscreen"]();
-			else if (elem["mozRequestFullScreen"])
-				elem["mozRequestFullScreen"]();
-			else if (elem["msRequestFullscreen"])
-				elem["msRequestFullscreen"]();
-			else if (elem["webkitRequestFullScreen"])
+			else if (!cr.is_undefined(elem["webkitRequestFullScreen"]))
 			{
 				if (typeof Element !== "undefined" && typeof Element["ALLOW_KEYBOARD_INPUT"] !== "undefined")
 					elem["webkitRequestFullScreen"](Element["ALLOW_KEYBOARD_INPUT"]);
 				else
 					elem["webkitRequestFullScreen"]();
 			}
+			else if (!cr.is_undefined(elem["mozRequestFullScreen"]))
+				elem["mozRequestFullScreen"]();
+			else if (!cr.is_undefined(elem["msRequestFullscreen"]))
+				elem["msRequestFullscreen"]();
 		}
 	};
 	Acts.prototype.CancelFullScreen = function ()
@@ -17152,14 +16971,14 @@ cr.plugins_.Browser = function(runtime)
 		}
 		else
 		{
-			if (document["exitFullscreen"])
+			if (!cr.is_undefined(document["exitFullscreen"]))
 				document["exitFullscreen"]();
-			else if (document["mozCancelFullScreen"])
-				document["mozCancelFullScreen"]();
-			else if (document["msExitFullscreen"])
-				document["msExitFullscreen"]();
-			else if (document["webkitCancelFullScreen"])
+			else if (!cr.is_undefined(document["webkitCancelFullScreen"]))
 				document["webkitCancelFullScreen"]();
+			else if (!cr.is_undefined(document["mozCancelFullScreen"]))
+				document["mozCancelFullScreen"]();
+			else if (!cr.is_undefined(document["msExitFullscreen"]))
+				document["msExitFullscreen"]();
 		}
 	};
 	Acts.prototype.Vibrate = function (pattern_)
@@ -20505,176 +20324,6 @@ cr.plugins_.Function = function(runtime)
 }());
 ;
 ;
-/*
-cr.plugins_.PhonegapVibration = function(runtime)
-{
-	this.runtime = runtime;
-	Type
-		onCreate
-	Instance
-		onCreate
-		draw
-		drawGL
-	cnds
-	acts
-	exps
-};
-*/
-cr.plugins_.PhonegapVibration = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.PhonegapVibration.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-/*
-		var newScriptTag=document.createElement('script');
-		newScriptTag.setAttribute("type","text/javascript");
-		newScriptTag.setAttribute("src", "mylib.js");
-		document.getElementsByTagName("head")[0].appendChild(newScriptTag);
-		var scripts=document.getElementsByTagName("script");
-		var scriptExist=false;
-		for(var i=0;i<scripts.length;i++){
-			if(scripts[i].src.indexOf("cordova.js")!=-1||scripts[i].src.indexOf("phonegap.js")!=-1){
-				scriptExist=true;
-				break;
-			}
-		}
-		if(!scriptExist){
-			var newScriptTag=document.createElement("script");
-			newScriptTag.setAttribute("type","text/javascript");
-			newScriptTag.setAttribute("src", "cordova.js");
-			document.getElementsByTagName("head")[0].appendChild(newScriptTag);
-		}
-*/
-		if(this.runtime.isBlackberry10 || this.runtime.isWindows8App || this.runtime.isWindowsPhone8 || this.runtime.isWindowsPhone81){
-			var scripts=document.getElementsByTagName("script");
-			var scriptExist=false;
-			for(var i=0;i<scripts.length;i++){
-				if(scripts[i].src.indexOf("cordova.js")!=-1||scripts[i].src.indexOf("phonegap.js")!=-1){
-					scriptExist=true;
-					break;
-				}
-			}
-			if(!scriptExist){
-				var newScriptTag=document.createElement("script");
-				newScriptTag.setAttribute("type","text/javascript");
-				newScriptTag.setAttribute("src", "cordova.js");
-				document.getElementsByTagName("head")[0].appendChild(newScriptTag);
-			}
-		}
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-/*
-		var self=this;
-		window.addEventListener("resize", function () {//cranberrygame
-			self.runtime.trigger(cr.plugins_.PhonegapVibration.prototype.cnds.TriggerCondition, self);
-		});
-*/
-		if (!(this.runtime.isAndroid || this.runtime.isBlackberry10 || this.runtime.isiOS || this.runtime.isWindowsPhone8 || this.runtime.isWindowsPhone81))
-			return;
-		if (this.runtime.isAndroid && navigator.platform == 'Win32')//crosswalk emulator
-			return;
-	};
-	instanceProto.draw = function(ctx)
-	{
-	};
-	instanceProto.drawGL = function (glw)
-	{
-	};
-/*
-	instanceProto.at = function (x)
-	{
-		return this.arr[x];
-	};
-	instanceProto.set = function (x, val)
-	{
-		this.arr[x] = val;
-	};
-*/
-	function Cnds() {};
-/*
-	Cnds.prototype.MyCondition = function (myparam)
-	{
-		return myparam >= 0;
-	};
-	Cnds.prototype.TriggerCondition = function ()
-	{
-		return true;
-	};
-*/
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-/*
-	Acts.prototype.MyAction = function (myparam)
-	{
-		alert(myparam);
-	};
-	Acts.prototype.TriggerAction = function ()
-	{
-		var self=this;
-		self.runtime.trigger(cr.plugins_.PhonegapVibration.prototype.cnds.TriggerCondition, self);
-	};
-*/
-	Acts.prototype.Vibrate = function (pattern_,repeat)
-	{
-		if (!(this.runtime.isAndroid || this.runtime.isBlackberry10 || this.runtime.isiOS || this.runtime.isWindowsPhone8 || this.runtime.isWindowsPhone81))
-			return;
-		if (this.runtime.isAndroid && navigator.platform == 'Win32')//crosswalk emulator
-			return;
-		if (repeat==1)
-			repeat=-1;
-		try {
-			var arr = pattern_.split(",");
-			var i, len;
-			for (i = 0, len = arr.length; i < len; i++)
-			{
-				arr[i] = parseInt(arr[i], 10);
-			}
-			arr.unshift(0);
-			navigator["notification"]["vibrateWithPattern"](arr, repeat);
-		}
-		catch (e) {}
-	};
-	Acts.prototype.CancelVibration = function ()
-	{
-		if (!(this.runtime.isAndroid || this.runtime.isBlackberry10 || this.runtime.isiOS || this.runtime.isWindowsPhone8 || this.runtime.isWindowsPhone81))
-			return;
-		if (this.runtime.isAndroid && navigator.platform == 'Win32')//crosswalk emulator
-			return;
-		navigator["notification"]["cancelVibration"]();
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-/*
-	Exps.prototype.MyExpression = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_int(1337);				// return our value
-	};
-	Exps.prototype.Text = function (ret, param) //cranberrygame
-	{
-		ret.set_string("Hello");		// for ef_return_string
-	};
-*/
-	pluginProto.exps = new Exps();
-}());
-;
-;
 cr.plugins_.Sprite = function(runtime)
 {
 	this.runtime = runtime;
@@ -20798,8 +20447,6 @@ cr.plugins_.Sprite = function(runtime)
 			frame.texture_img.c2webGL_texture = null;
 			frame.webGL_texture = null;
 		}
-		this.has_loaded_textures = false;
-		this.updateAllCurrentTexture();
 	};
 	typeProto.onRestoreWebGLContext = function ()
 	{
@@ -21181,8 +20828,8 @@ cr.plugins_.Sprite = function(runtime)
 			myy -= this.hotspotY * h;
 			if (this.runtime.pixel_rounding)
 			{
-				myx = Math.round(myx);
-				myy = Math.round(myy);
+				myx = (myx + 0.5) | 0;
+				myy = (myy + 0.5) | 0;
 			}
 			if (spritesheeted)
 			{
@@ -21198,8 +20845,8 @@ cr.plugins_.Sprite = function(runtime)
 		{
 			if (this.runtime.pixel_rounding)
 			{
-				myx = Math.round(myx);
-				myy = Math.round(myy);
+				myx = (myx + 0.5) | 0;
+				myy = (myy + 0.5) | 0;
 			}
 			ctx.save();
 			var widthfactor = w > 0 ? 1 : -1;
@@ -21254,8 +20901,8 @@ cr.plugins_.Sprite = function(runtime)
 		var q = this.bquad;
 		if (this.runtime.pixel_rounding)
 		{
-			var ox = Math.round(this.x) - this.x;
-			var oy = Math.round(this.y) - this.y;
+			var ox = ((this.x + 0.5) | 0) - this.x;
+			var oy = ((this.y + 0.5) | 0) - this.y;
 			if (cur_frame.spritesheeted)
 				glw.quadTex(q.tlx + ox, q.tly + oy, q.trx + ox, q.try_ + oy, q.brx + ox, q.bry + oy, q.blx + ox, q.bly + oy, cur_frame.sheetTex);
 			else
@@ -21392,16 +21039,16 @@ cr.plugins_.Sprite = function(runtime)
 		var runtime = this.runtime;
 		var cnd = runtime.getCurrentCondition();
 		var ltype = cnd.type;
-		if (!cnd.extra["collmemory"])
+		if (!cnd.extra.collmemory)
 		{
-			cnd.extra["collmemory"] = {};
+			cnd.extra.collmemory = {};
 			runtime.addDestroyCallback((function (collmemory) {
 				return function(inst) {
 					collmemory_removeInstance(collmemory, inst);
 				};
-			})(cnd.extra["collmemory"]));
+			})(cnd.extra.collmemory));
 		}
-		var collmemory = cnd.extra["collmemory"];
+		var collmemory = cnd.extra.collmemory;
 		var lsol = ltype.getCurrentSol();
 		var rsol = rtype.getCurrentSol();
 		var linstances = lsol.getObjects();
@@ -21656,10 +21303,10 @@ cr.plugins_.Sprite = function(runtime)
 		this.runtime.isInOnDestroy--;
 		var cur_act = this.runtime.getCurrentAction();
 		var reset_sol = false;
-		if (cr.is_undefined(cur_act.extra["Spawn_LastExec"]) || cur_act.extra["Spawn_LastExec"] < this.runtime.execcount)
+		if (cr.is_undefined(cur_act.extra.Spawn_LastExec) || cur_act.extra.Spawn_LastExec < this.runtime.execcount)
 		{
 			reset_sol = true;
-			cur_act.extra["Spawn_LastExec"] = this.runtime.execcount;
+			cur_act.extra.Spawn_LastExec = this.runtime.execcount;
 		}
 		var sol;
 		if (obj != this.type)
@@ -21802,7 +21449,6 @@ cr.plugins_.Sprite = function(runtime)
 			curFrame_.height = img.height;
 			curFrame_.spritesheeted = false;
 			curFrame_.datauri = "";
-			curFrame_.pixelformat = 0;	// reset to RGBA, since we don't know what type of image will have come in
 			if (self.runtime.glwrap)
 			{
 				if (curFrame_.webGL_texture)
@@ -21822,7 +21468,7 @@ cr.plugins_.Sprite = function(runtime)
 			self.runtime.trigger(cr.plugins_.Sprite.prototype.cnds.OnURLLoaded, self);
 		};
 		if (url_.substr(0, 5) !== "data:")
-			img["crossOrigin"] = "anonymous";
+			img.crossOrigin = 'anonymous';
 		img.src = url_;
 	};
 	Acts.prototype.SetCollisions = function (set_)
@@ -22317,8 +21963,8 @@ cr.plugins_.Spritefont2 = function(runtime)
 			var myy = this.y;
 			if (this.runtime.pixel_rounding)
 			{
-				myx = Math.round(myx);
-				myy = Math.round(myy);
+				myx = (myx + 0.5) | 0;
+				myy = (myy + 0.5) | 0;
 			}
 			var viewLeft = this.layer.viewLeft;
 			var viewTop = this.layer.viewTop;
@@ -22424,8 +22070,8 @@ cr.plugins_.Spritefont2 = function(runtime)
 		var oy = 0;
 		if (this.runtime.pixel_rounding)
 		{
-			ox = Math.round(this.x) - this.x;
-			oy = Math.round(this.y) - this.y;
+			ox = ((this.x + 0.5) | 0) - this.x;
+			oy = ((this.y + 0.5) | 0) - this.y;
 		}
 		var viewLeft = this.layer.viewLeft;
 		var viewTop = this.layer.viewTop;
@@ -23690,8 +23336,8 @@ cr.plugins_.TiledBg = function(runtime)
 		var myy = this.y;
 		if (this.runtime.pixel_rounding)
 		{
-			myx = Math.round(myx);
-			myy = Math.round(myy);
+			myx = (myx + 0.5) | 0;
+			myy = (myy + 0.5) | 0;
 		}
 		var drawX = -(this.hotspotX * this.width);
 		var drawY = -(this.hotspotY * this.height);
@@ -23720,8 +23366,8 @@ cr.plugins_.TiledBg = function(runtime)
 		var q = this.bquad;
 		if (this.runtime.pixel_rounding)
 		{
-			var ox = Math.round(this.x) - this.x;
-			var oy = Math.round(this.y) - this.y;
+			var ox = ((this.x + 0.5) | 0) - this.x;
+			var oy = ((this.y + 0.5) | 0) - this.y;
 			glw.quadTex(q.tlx + ox, q.tly + oy, q.trx + ox, q.try_ + oy, q.brx + ox, q.bry + oy, q.blx + ox, q.bly + oy, rcTex);
 		}
 		else
@@ -24545,10 +24191,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxX = layer.parallaxX;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxX = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(this.touches[index].x, this.touches[index].y, true));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -24583,10 +24229,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxX = layer.parallaxX;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxX = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(this.touches[index].x, this.touches[index].y, true));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -24622,10 +24268,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxX = layer.parallaxX;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxX = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(touch.x, touch.y, true));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -24660,10 +24306,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxY = layer.parallaxY;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxY = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(this.touches[index].x, this.touches[index].y, false));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -24698,10 +24344,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxY = layer.parallaxY;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxY = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(this.touches[index].x, this.touches[index].y, false));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -24737,10 +24383,10 @@ cr.plugins_.Touch = function(runtime)
 			oldZoomRate = layer.zoomRate;
 			oldParallaxY = layer.parallaxY;
 			oldAngle = layer.angle;
-			layer.scale = 1;
+			layer.scale = this.runtime.running_layout.scale;
 			layer.zoomRate = 1.0;
 			layer.parallaxY = 1.0;
-			layer.angle = 0;
+			layer.angle = this.runtime.running_layout.angle;
 			ret.set_float(layer.canvasToLayer(touch.x, touch.y, false));
 			layer.scale = oldScale;
 			layer.zoomRate = oldZoomRate;
@@ -27436,56 +27082,8 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.CJSAds,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.PhonegapVibration,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.Dictionary,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
 		cr.plugins_.Arr,
 		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.Audio,
-		true,
 		false,
 		false,
 		false,
@@ -27520,7 +27118,7 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.CBhash,
+		cr.plugins_.Audio,
 		true,
 		false,
 		false,
@@ -27544,11 +27142,35 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
+		cr.plugins_.Dictionary,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
 		cr.plugins_.Facebook2,
 		true,
 		false,
 		false,
 		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.filechooser,
+		false,
+		true,
+		true,
+		true,
 		false,
 		false,
 		false,
@@ -27568,11 +27190,23 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.filechooser,
+		cr.plugins_.CBhash,
+		true,
 		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.CJSAds,
 		true,
-		true,
-		true,
+		false,
+		false,
+		false,
 		false,
 		false,
 		false,
@@ -27616,6 +27250,18 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
+		cr.plugins_.TextBox,
+		false,
+		true,
+		true,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
 		cr.plugins_.Text,
 		false,
 		true,
@@ -27638,18 +27284,6 @@ cr.getProjectModel = function() { return [
 		true,
 		true,
 		true
-	]
-,	[
-		cr.plugins_.TextBox,
-		false,
-		true,
-		true,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
 	]
 ,	[
 		cr.plugins_.Touch,
@@ -28760,7 +28394,7 @@ cr.getProjectModel = function() { return [
 			false,
 			6858067619315579,
 			[
-				["img/game/biscuit-sheet0.png", 14679, 0, 0, 100, 100, 1, 0.5199999809265137, 0.5199999809265137,[],[],0]
+				["img/game/biscuit-sheet0.png", 14679, 0, 0, 100, 100, 1, 0.5199999809265137, 0.5199999809265137,[],[0.2800000309944153,0.2800000309944153,-0.01999998092651367,0.4000000357627869,-0.3199999928474426,0.2800000309944153,-0.4099999666213989,-0.01999998092651367,-0.2899999618530273,-0.2899999618530273,-0.01999998092651367,-0.4199999868869782,0.25,-0.2899999618530273,0.4000000357627869,-0.01999998092651367],0]
 			]
 			]
 ,			[
@@ -28772,7 +28406,7 @@ cr.getProjectModel = function() { return [
 			false,
 			4208142198088518,
 			[
-				["img/game/biscuit-sheet1.png", 14100, 0, 0, 81, 81, 1, 0.5061728358268738, 0.5061728358268738,[],[],0]
+				["img/game/biscuit-sheet1.png", 14100, 0, 0, 81, 81, 1, 0.5061728358268738, 0.5061728358268738,[],[-0.3580248355865479,-0.3580248355865479,-0.01234585046768189,-0.4938271343708038,0.3456791639328003,-0.3580248355865479,0.4938271641731262,-0.01234585046768189,0.3333331346511841,0.3333331346511841,-0.01234585046768189,0.4691361784934998,-0.3580248355865479,0.3456791639328003,-0.4938271343708038,-0.01234585046768189],0]
 			]
 			]
 		],
@@ -28998,7 +28632,7 @@ cr.getProjectModel = function() { return [
 			false,
 			2349602642873887,
 			[
-				["img/game/biscuit_special-sheet0.png", 13659, 0, 0, 79, 81, 1, 0.5063291192054749, 0.5061728358268738,[],[],0]
+				["img/game/biscuit_special-sheet0.png", 13659, 0, 0, 79, 81, 1, 0.5063291192054749, 0.5061728358268738,[],[-0.3544301390647888,-0.3580248355865479,-0.01265811920166016,-0.4938271343708038,0.3164559006690979,-0.3333328366279602,0.4810128808021545,-0.01234585046768189,0.3544299006462097,0.3580251932144165,-0.01265811920166016,0.4691361784934998,-0.3544301390647888,0.3456791639328003,-0.4936709105968475,-0.01234585046768189],0]
 			]
 			]
 		],
@@ -29457,7 +29091,7 @@ cr.getProjectModel = function() { return [
 		1342239424496577,
 		[],
 		null
-		,[0,0,0,1,1,600,600,10000,1,5000,1]
+		,[0,0,1,1,600,600,10000,1,5000,1]
 	]
 ,	[
 		"t53",
@@ -30850,24 +30484,6 @@ cr.getProjectModel = function() { return [
 		[],
 		null
 	]
-,	[
-		"t95",
-		cr.plugins_.PhonegapVibration,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		3621063225530233,
-		[],
-		null
-		,[]
-	]
 	],
 	[
 	],
@@ -31261,14 +30877,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				8,
 				[
 				],
 				[
@@ -31347,14 +30963,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
 				24,
-				23,
+				55,
 				[
 					[0]
 				],
@@ -31375,7 +30991,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
 				23,
-				22,
+				113,
 				[
 				],
 				[
@@ -31395,7 +31011,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
 				22,
-				20,
+				114,
 				[
 					[0]
 				],
@@ -31416,7 +31032,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				25,
-				26,
+				115,
 				[
 				],
 				[
@@ -31438,7 +31054,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				26,
-				27,
+				116,
 				[
 				],
 				[
@@ -31460,7 +31076,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				27,
-				28,
+				117,
 				[
 				],
 				[
@@ -31482,7 +31098,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				28,
-				24,
+				118,
 				[
 				],
 				[
@@ -31502,9 +31118,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
+				[93, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
 				81,
-				96,
+				119,
 				[
 				],
 				[
@@ -31524,7 +31140,7 @@ cr.getProjectModel = function() { return [
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				86,
-				101,
+				120,
 				[
 				],
 				[
@@ -31557,14 +31173,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				12,
 				[
 				],
 				[
@@ -31603,14 +31219,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				2,
 				[
 				],
 				[
@@ -32171,14 +31787,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
 				24,
-				23,
+				121,
 				[
 					[0]
 				],
@@ -32197,9 +31813,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
+				[-249.9044036865234, 0.301513671875, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
 				23,
-				22,
+				122,
 				[
 				],
 				[
@@ -32217,9 +31833,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
+				[41.09559631347656, 41.301513671875, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
 				22,
-				20,
+				123,
 				[
 					[0]
 				],
@@ -32238,9 +31854,31 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
+				[-314.9044189453125, 589.301513671875, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				25,
+				124,
+				[
+				],
+				[
+				[
+				],
+				[
+					1,
+					0,
+					1
+				]
+				],
+				[
+					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[-314.9044189453125, 286.301513671875, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				26,
+				125,
 				[
 				],
 				[
@@ -32260,9 +31898,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				[-314.9044189453125, 146.301513671875, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				27,
+				126,
 				[
 				],
 				[
@@ -32282,9 +31920,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				[-314.9044189453125, 437.301513671875, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				28,
+				127,
 				[
 				],
 				[
@@ -32304,31 +31942,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
+				[93.09559631347656, 1125.301513671875, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
 				81,
-				96,
+				128,
 				[
 				],
 				[
@@ -32346,9 +31962,9 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
+				[-314.9044189453125, 743.301513671875, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
 				86,
-				101,
+				129,
 				[
 				],
 				[
@@ -32381,14 +31997,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				6,
 				[
 				],
 				[
@@ -32427,14 +32043,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
-				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[400, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				9,
 				[
 				],
 				[
@@ -32867,202 +32483,10 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
-			[
-				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				24,
-				23,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				23,
-				22,
-				[
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				22,
-				20,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				25,
-				26,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
-				27,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
-				28,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				81,
-				96,
-				[
-				],
-				[
-				],
-				[
-					"",
-					0,
-					"12pt Arial",
-					"rgb(0,0,0)",
-					0,
-					0,
-					0,
-					0,
-					0
-				]
-			]
-,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				86,
-				101,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
 			],
 			[			]
 		]
@@ -33077,14 +32501,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				10,
 				[
 				],
 				[
@@ -33123,14 +32547,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
-				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[400, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				11,
 				[
 				],
 				[
@@ -33209,202 +32633,10 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
-			[
-				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				24,
-				23,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				23,
-				22,
-				[
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				22,
-				20,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				25,
-				26,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
-				27,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
-				28,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				81,
-				96,
-				[
-				],
-				[
-				],
-				[
-					"",
-					0,
-					"12pt Arial",
-					"rgb(0,0,0)",
-					0,
-					0,
-					0,
-					0,
-					0
-				]
-			]
-,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				86,
-				101,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
 			],
 			[			]
 		]
@@ -33419,14 +32651,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				13,
 				[
 				],
 				[
@@ -33465,14 +32697,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
-				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[400, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				14,
 				[
 				],
 				[
@@ -33722,202 +32954,10 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
-			[
-				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				24,
-				23,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				23,
-				22,
-				[
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				22,
-				20,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				25,
-				26,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
-				27,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
-				28,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				81,
-				96,
-				[
-				],
-				[
-				],
-				[
-					"",
-					0,
-					"12pt Arial",
-					"rgb(0,0,0)",
-					0,
-					0,
-					0,
-					0,
-					0
-				]
-			]
-,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				86,
-				101,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
 			],
 			[			]
 		]
@@ -33932,14 +32972,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				15,
 				[
 				],
 				[
@@ -33978,14 +33018,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
-				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[400, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				16,
 				[
 				],
 				[
@@ -34181,202 +33221,10 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
-			[
-				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				24,
-				23,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				23,
-				22,
-				[
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				22,
-				20,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				25,
-				26,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
-				27,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
-				28,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				81,
-				96,
-				[
-				],
-				[
-				],
-				[
-					"",
-					0,
-					"12pt Arial",
-					"rgb(0,0,0)",
-					0,
-					0,
-					0,
-					0,
-					0
-				]
-			]
-,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				86,
-				101,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
 			],
 			[			]
 		]
@@ -34391,14 +33239,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				17,
 				[
 				],
 				[
@@ -34462,14 +33310,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
-				[320, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[400, 568, 0, 800, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				15,
-				3,
+				18,
 				[
 				],
 				[
@@ -34528,202 +33376,10 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
-			[
-				[320, 568, 0, 800, 1136, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				24,
-				23,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				23,
-				22,
-				[
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[41, 41, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				22,
-				20,
-				[
-					[0]
-				],
-				[
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				25,
-				26,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
-				27,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
-				28,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
-				24,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				81,
-				96,
-				[
-				],
-				[
-				],
-				[
-					"",
-					0,
-					"12pt Arial",
-					"rgb(0,0,0)",
-					0,
-					0,
-					0,
-					0,
-					0
-				]
-			]
-,			[
-				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				86,
-				101,
-				[
-				],
-				[
-				[
-				],
-				[
-					1,
-					0,
-					1
-				]
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
 			],
 			[			]
 		]
@@ -34738,14 +33394,14 @@ cr.getProjectModel = function() { return [
 			1,
 			1,
 			false,
-			0,
+			1,
 			0,
 			0,
 			[
 			[
 				[-17, -30, 0, 16, 16, 0, 0, 1, 0, 0, 0, 0, []],
 				13,
-				1,
+				19,
 				[
 				],
 				[
@@ -42232,26 +40888,6 @@ false,true,3989474741624965,false
 							]
 							]
 						]
-,						[
-							95,
-							cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
-							null,
-							5545706799623922,
-							false
-							,[
-							[
-								1,
-								[
-									2,
-									"100"
-								]
-							]
-,							[
-								3,
-								1
-							]
-							]
-						]
 						]
 					]
 ,					[
@@ -42634,26 +41270,6 @@ false,true,3989474741624965,false
 									2,
 									""
 								]
-							]
-							]
-						]
-,						[
-							95,
-							cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
-							null,
-							1889741202067249,
-							false
-							,[
-							[
-								1,
-								[
-									2,
-									"100"
-								]
-							]
-,							[
-								3,
-								1
 							]
 							]
 						]
@@ -48773,12 +47389,11 @@ false,true,6859516009138538,false
 	true,
 	0,
 	1,
-	113,
+	130,
 	false,
 	true,
 	1,
 	true,
-	"Toortizi",
 	[
 	]
 ];};
