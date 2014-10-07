@@ -39583,18 +39583,24 @@ false,true,7978056896885376,false
 			null,
 			false,
 			null,
-			3987429647298061,
+			9197899985889282,
 			[
 			[
-				56,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
+				19,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+				null,
 				1,
 				false,
 				false,
 				false,
-				9765564926207628,
+				8846663344769172,
 				false
+				,[
+				[
+					4,
+					56
+				]
+				]
 			]
 ,			[
 				-1,
@@ -39604,7 +39610,7 @@ false,true,7978056896885376,false
 				false,
 				false,
 				false,
-				9529774553305695,
+				1987236513116117,
 				false
 				,[
 				[
@@ -40021,13 +40027,6 @@ false,false,2046618117240453,false
 			1,
 			"",
 false,false,1262728931712447,false
-		]
-,		[
-			1,
-			"facebook_login",
-			0,
-			0,
-false,false,1409351052014006,false
 		]
 ,		[
 			0,
@@ -41177,26 +41176,6 @@ false,false,1409351052014006,false
 			]
 			],
 			[
-			[
-				-1,
-				cr.system_object.prototype.acts.SetVar,
-				null,
-				3965185739283128,
-				false
-				,[
-				[
-					11,
-					"facebook_login"
-				]
-,				[
-					7,
-					[
-						0,
-						1
-					]
-				]
-				]
-			]
 			]
 			,[
 			[
@@ -42615,45 +42594,6 @@ false,false,1409351052014006,false
 				]
 				]
 			]
-			]
-		]
-,		[
-			0,
-			null,
-			false,
-			null,
-			1990182022602545,
-			[
-			[
-				-1,
-				cr.system_object.prototype.cnds.CompareVar,
-				null,
-				0,
-				false,
-				false,
-				false,
-				2096793490323055,
-				false
-				,[
-				[
-					11,
-					"facebook_login"
-				]
-,				[
-					8,
-					0
-				]
-,				[
-					7,
-					[
-						0,
-						0
-					]
-				]
-				]
-			]
-			],
-			[
 			]
 		]
 		]
