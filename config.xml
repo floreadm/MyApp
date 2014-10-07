@@ -23,15 +23,12 @@
 	<preference name="target-device" value="handset" />
 
 	<gap:plugin name="org.apache.cordova.inappbrowser" version="0.5.2" />
-	<gap:plugin name="org.apache.cordova.vibration" version="0.3.7" />
+	<gap:plugin name="org.apache.cordova.vibration" version="0.3.11" />
 	<gap:plugin name="com.phonegap.plugins.facebookconnect" version="0.4.0">
 		<param name="APP_ID" value="455787317892334" />
 		<param name="APP_NAME" value="Toortitzi" />
 	</gap:plugin>
-	<feature name="Keyboard">
-		<param name="ios-package" value="IonicKeyboard" onload="true" />
-	</feature>
 	<!-- Optional splash screen image, e.g.: -->
-	<gap:splash src="splash.png" width="1024" height="768" />
+	<!-- <gap:splash src="splash.png" width="1024" height="768" /> -->
 
 </widget>
