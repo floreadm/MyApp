@@ -29771,7 +29771,7 @@ cr.getProjectModel = function() { return [
 			false,
 			3901866927287303,
 			[
-				["img/pause-sheet0.png", 2811, 0, 0, 800, 1134, 1, 0.5, 0.5,[],[-0.306875079870224,-0.4303351044654846,-0.3075000941753388,-0.5,0.5,-0.5,0.5,0.5,-0.5,0.5,-0.5,-0.4303354322910309],0]
+				["img/pause-sheet0.png", 2811, 0, 0, 800, 1134, 1, 0.5, 0.5,[],[-0.2881250977516174,-0.4100528955459595,-0.2887501120567322,-0.4982363283634186,0.5,-0.5,0.5,0.5,-0.5,0.5,-0.5,-0.4100531935691834],0]
 			]
 			]
 		],
@@ -30175,7 +30175,7 @@ cr.getProjectModel = function() { return [
 			false,
 			6858067619315579,
 			[
-				["img/biscuit-sheet0.png", 14679, 0, 0, 100, 100, 1, 0.5199999809265137, 0.5199999809265137,[],[0.2800000309944153,0.2800000309944153,-0.01999998092651367,0.4000000357627869,-0.3199999928474426,0.2800000309944153,-0.4099999666213989,-0.01999998092651367,-0.2899999618530273,-0.2899999618530273,-0.01999998092651367,-0.4199999868869782,0.25,-0.2899999618530273,0.4000000357627869,-0.01999998092651367],0]
+				["img/biscuit-sheet0.png", 14679, 0, 0, 100, 100, 1, 0.5199999809265137, 0.5199999809265137,[],[],0]
 			]
 			]
 ,			[
@@ -30187,7 +30187,7 @@ cr.getProjectModel = function() { return [
 			false,
 			4208142198088518,
 			[
-				["img/biscuit-sheet1.png", 14100, 0, 0, 81, 81, 1, 0.5061728358268738, 0.5061728358268738,[],[-0.3580248355865479,-0.3580248355865479,-0.01234585046768189,-0.4938271343708038,0.3456791639328003,-0.3580248355865479,0.4938271641731262,-0.01234585046768189,0.3333331346511841,0.3333331346511841,-0.01234585046768189,0.4691361784934998,-0.3580248355865479,0.3456791639328003,-0.4938271343708038,-0.01234585046768189],0]
+				["img/biscuit-sheet1.png", 14100, 0, 0, 81, 81, 1, 0.5061728358268738, 0.5061728358268738,[],[],0]
 			]
 			]
 		],
@@ -30413,7 +30413,7 @@ cr.getProjectModel = function() { return [
 			false,
 			2349602642873887,
 			[
-				["img/biscuit_special-sheet1.png", 13659, 0, 0, 79, 81, 1, 0.5063291192054749, 0.5061728358268738,[],[-0.3544301390647888,-0.3580248355865479,-0.01265811920166016,-0.4938271343708038,0.3164559006690979,-0.3333328366279602,0.4810128808021545,-0.01234585046768189,0.3544299006462097,0.3580251932144165,-0.01265811920166016,0.4691361784934998,-0.3544301390647888,0.3456791639328003,-0.4936709105968475,-0.01234585046768189],0]
+				["img/biscuit_special-sheet1.png", 13659, 0, 0, 79, 81, 1, 0.5063291192054749, 0.5061728358268738,[],[],0]
 			]
 			]
 		],
@@ -32283,6 +32283,53 @@ cr.getProjectModel = function() { return [
 		[],
 		null
 		,[]
+	]
+,	[
+		"t97",
+		cr.plugins_.Sprite,
+		false,
+		[],
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			6649924316833158,
+			[
+				["img/score_place-sheet0.png", 2241, 0, 0, 157, 57, 1, 0.5031847357749939, 0.5087719559669495,[],[-0.4076433181762695,-0.2456140518188477,-0.006369441747665405,-0.2631579041481018,0.4904458522796631,-0.4912281036376953,0.4904458522796631,-0.01754388213157654,0.4458598494529724,0.3508771657943726,-0.006369441747665405,0.3508771657943726,-0.4649681746959686,0.3859648704528809,-0.5031847357749939,-0.01754388213157654],0]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		1988269986967415,
+		[],
+		null
+	]
+,	[
+		"t98",
+		cr.plugins_.Spritefont2,
+		false,
+		[],
+		0,
+		0,
+		["img/textscoretop.png", 5413, 0],
+		null,
+		[
+		],
+		false,
+		false,
+		542397455956337,
+		[],
+		null
 	]
 	],
 	[
@@ -34301,6 +34348,44 @@ cr.getProjectModel = function() { return [
 					0
 				]
 			]
+,			[
+				[391, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
+				97,
+				115,
+				[
+				],
+				[
+				],
+				[
+					1,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[486, 72, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				98,
+				116,
+				[
+				],
+				[
+				],
+				[
+					16,
+					16,
+					"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:?!-_~#\"'&()[]|`\\/@°+=*$£€<>",
+					"Text",
+					1,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0
+				]
+			]
 			],
 			[			]
 		]
@@ -34647,6 +34732,82 @@ cr.getProjectModel = function() { return [
 				],
 				[
 					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[321, 115, 0, 640, 95, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
+				61,
+				112,
+				[
+				],
+				[
+				],
+				[
+					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[191, 76, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				46,
+				113,
+				[
+				],
+				[
+				],
+				[
+					20,
+					66,
+					"0123456789",
+					"Text",
+					1,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0
+				]
+			]
+,			[
+				[485, 76, 0, 149, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				98,
+				117,
+				[
+				],
+				[
+				],
+				[
+					20,
+					66,
+					"0123456789",
+					"Text",
+					1,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0
+				]
+			]
+,			[
+				[391, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
+				97,
+				118,
+				[
+				],
+				[
+				],
+				[
+					1,
 					"Default",
 					0,
 					1
@@ -39507,6 +39668,315 @@ false,true,7978056896885376,false
 			]
 			]
 		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			5543832286555474,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.CompareVar,
+				null,
+				0,
+				false,
+				false,
+				false,
+				5423925267799328,
+				false
+				,[
+				[
+					11,
+					"user_id"
+				]
+,				[
+					8,
+					1
+				]
+,				[
+					7,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.cnds.CompareVar,
+				null,
+				0,
+				false,
+				false,
+				false,
+				1889666182817853,
+				false
+				,[
+				[
+					11,
+					"score_position"
+				]
+,				[
+					8,
+					1
+				]
+,				[
+					7,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				46,
+				cr.plugins_.Spritefont2.prototype.acts.SetText,
+				null,
+				1059838518711359,
+				false
+				,[
+				[
+					7,
+					[
+						23,
+						"score"
+					]
+				]
+				]
+			]
+,			[
+				97,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				3146927383480646,
+				false
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				98,
+				cr.plugins_.Spritefont2.prototype.acts.SetText,
+				null,
+				3030912349133255,
+				false
+				,[
+				[
+					7,
+					[
+						23,
+						"score_position"
+					]
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.SetVar,
+				null,
+				4839362470943463,
+				false
+				,[
+				[
+					11,
+					"score_position"
+				]
+,				[
+					7,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			2622973340092411,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.CompareVar,
+				null,
+				0,
+				false,
+				false,
+				false,
+				5796927185869992,
+				false
+				,[
+				[
+					11,
+					"score_position"
+				]
+,				[
+					8,
+					0
+				]
+,				[
+					7,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				64,
+				cr.plugins_.AJAX.prototype.acts.Request,
+				null,
+				8950127347130052,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"UserPosition"
+					]
+				]
+,				[
+					1,
+					[
+						10,
+						[
+							23,
+							"REQUEST_SCORE_TOP_POSITION_URL"
+						]
+						,[
+							18,
+							[
+								13,
+								[
+									23,
+									"user_id"
+								]
+								,[
+									2,
+									""
+								]
+							]
+							,[
+								10,
+								[
+									2,
+									"/"
+								]
+								,[
+									23,
+									"user_id"
+								]
+							]
+							,[
+								2,
+								""
+							]
+						]
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			8215822924114734,
+			[
+			[
+				64,
+				cr.plugins_.AJAX.prototype.cnds.OnComplete,
+				null,
+				1,
+				false,
+				false,
+				false,
+				1101606037930395,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"UserPosition"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				97,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				604517297150346,
+				false
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.SetVar,
+				null,
+				7822700298910676,
+				false
+				,[
+				[
+					11,
+					"score_position"
+				]
+,				[
+					7,
+					[
+						20,
+						64,
+						cr.plugins_.AJAX.prototype.exps.LastData,
+						true,
+						null
+					]
+				]
+				]
+			]
+,			[
+				98,
+				cr.plugins_.Spritefont2.prototype.acts.SetText,
+				null,
+				1436103098869477,
+				false
+				,[
+				[
+					7,
+					[
+						23,
+						"score_position"
+					]
+				]
+				]
+			]
+			]
+		]
 		]
 	]
 ,	[
@@ -39533,10 +40003,31 @@ false,true,2415201526151519,false
 		]
 ,		[
 			1,
+			"REQUEST_SCORE_TOP_POSITION_URL",
+			1,
+			"http://apps.wwwiew.com/toortitzi/mobile/get_user_top_position",
+false,true,3917726149621653,false
+		]
+,		[
+			1,
 			"proceed_form",
 			0,
 			0,
 false,false,2046618117240453,false
+		]
+,		[
+			1,
+			"score_position",
+			1,
+			"",
+false,false,1262728931712447,false
+		]
+,		[
+			1,
+			"facebook_login",
+			0,
+			0,
+false,false,1409351052014006,false
 		]
 ,		[
 			0,
@@ -40686,6 +41177,26 @@ false,false,2046618117240453,false
 			]
 			],
 			[
+			[
+				-1,
+				cr.system_object.prototype.acts.SetVar,
+				null,
+				3965185739283128,
+				false
+				,[
+				[
+					11,
+					"facebook_login"
+				]
+,				[
+					7,
+					[
+						0,
+						1
+					]
+				]
+				]
+			]
 			]
 			,[
 			[
@@ -40829,124 +41340,122 @@ false,false,2046618117240453,false
 						]
 					]
 					]
-					,[
+				]
+,				[
+					0,
+					null,
+					false,
+					null,
+					3718986315951487,
 					[
+					[
+						90,
+						cr.plugins_.FBComplete.prototype.cnds.IsLoggedIn,
+						null,
 						0,
-						null,
 						false,
+						false,
+						false,
+						171858053464938,
+						false
+					]
+					],
+					[
+					[
+						78,
+						cr.plugins_.Dictionary.prototype.acts.AddKey,
 						null,
-						3718986315951487,
+						2611165518186723,
+						false
+						,[
 						[
-						[
-							90,
-							cr.plugins_.FBComplete.prototype.cnds.IsLoggedIn,
-							null,
-							0,
-							false,
-							false,
-							false,
-							171858053464938,
-							false
-						]
-						],
-						[
-						[
-							78,
-							cr.plugins_.Dictionary.prototype.acts.AddKey,
-							null,
-							2611165518186723,
-							false
-							,[
+							1,
 							[
-								1,
-								[
-									2,
-									"facebook_token"
-								]
-							]
-,							[
-								7,
-								[
-									20,
-									90,
-									cr.plugins_.FBComplete.prototype.exps.UserAccessToken,
-									true,
-									null
-								]
-							]
+								2,
+								"facebook_token"
 							]
 						]
 ,						[
-							78,
-							cr.plugins_.Dictionary.prototype.acts.AddKey,
-							null,
-							1813375088459945,
-							false
-							,[
+							7,
 							[
-								1,
-								[
-									2,
-									"game_token"
-								]
+								20,
+								90,
+								cr.plugins_.FBComplete.prototype.exps.UserAccessToken,
+								true,
+								null
 							]
-,							[
-								7,
-								[
-									23,
-									"game_token"
-								]
-							]
+						]
+						]
+					]
+,					[
+						78,
+						cr.plugins_.Dictionary.prototype.acts.AddKey,
+						null,
+						1813375088459945,
+						false
+						,[
+						[
+							1,
+							[
+								2,
+								"game_token"
 							]
 						]
 ,						[
-							64,
-							cr.plugins_.AJAX.prototype.acts.Post,
-							null,
-							3961008869792619,
-							false
-							,[
+							7,
 							[
-								1,
-								[
-									2,
-									"saveFacebookData"
-								]
+								23,
+								"game_token"
 							]
-,							[
-								1,
-								[
-									23,
-									"SEND_FORM_DATA_FACEBOOK_URL"
-								]
-							]
-,							[
-								1,
-								[
-									20,
-									78,
-									cr.plugins_.Dictionary.prototype.exps.AsJSON,
-									true,
-									null
-								]
-							]
-,							[
-								1,
-								[
-									2,
-									"POST"
-								]
-							]
+						]
+						]
+					]
+,					[
+						64,
+						cr.plugins_.AJAX.prototype.acts.Post,
+						null,
+						3961008869792619,
+						false
+						,[
+						[
+							1,
+							[
+								2,
+								"saveFacebookData"
 							]
 						]
 ,						[
-							78,
-							cr.plugins_.Dictionary.prototype.acts.Clear,
-							null,
-							741260873635108,
-							false
+							1,
+							[
+								23,
+								"SEND_FORM_DATA_FACEBOOK_URL"
+							]
+						]
+,						[
+							1,
+							[
+								20,
+								78,
+								cr.plugins_.Dictionary.prototype.exps.AsJSON,
+								true,
+								null
+							]
+						]
+,						[
+							1,
+							[
+								2,
+								"POST"
+							]
 						]
 						]
+					]
+,					[
+						78,
+						cr.plugins_.Dictionary.prototype.acts.Clear,
+						null,
+						741260873635108,
+						false
 					]
 					]
 				]
@@ -41776,6 +42285,74 @@ false,false,2046618117240453,false
 					]
 					]
 				]
+,				[
+					97,
+					cr.plugins_.Sprite.prototype.acts.SetVisible,
+					null,
+					1566906004778371,
+					false
+					,[
+					[
+						3,
+						1
+					]
+					]
+				]
+,				[
+					64,
+					cr.plugins_.AJAX.prototype.acts.Request,
+					null,
+					5622412960371574,
+					false
+					,[
+					[
+						1,
+						[
+							2,
+							"UserPosition"
+						]
+					]
+,					[
+						1,
+						[
+							10,
+							[
+								23,
+								"REQUEST_SCORE_TOP_POSITION_URL"
+							]
+							,[
+								18,
+								[
+									13,
+									[
+										23,
+										"user_id"
+									]
+									,[
+										2,
+										""
+									]
+								]
+								,[
+									10,
+									[
+										2,
+										"/"
+									]
+									,[
+										23,
+										"user_id"
+									]
+								]
+								,[
+									2,
+									""
+								]
+							]
+						]
+					]
+					]
+				]
 				]
 			]
 ,			[
@@ -41955,6 +42532,128 @@ false,false,2046618117240453,false
 				]
 				]
 			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			3578886180471596,
+			[
+			[
+				64,
+				cr.plugins_.AJAX.prototype.cnds.OnComplete,
+				null,
+				1,
+				false,
+				false,
+				false,
+				7890334315579167,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"UserPosition"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				97,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				489244455593606,
+				false
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.SetVar,
+				null,
+				806987079981778,
+				false
+				,[
+				[
+					11,
+					"score_position"
+				]
+,				[
+					7,
+					[
+						20,
+						64,
+						cr.plugins_.AJAX.prototype.exps.LastData,
+						true,
+						null
+					]
+				]
+				]
+			]
+,			[
+				98,
+				cr.plugins_.Spritefont2.prototype.acts.SetText,
+				null,
+				5310688730900942,
+				false
+				,[
+				[
+					7,
+					[
+						23,
+						"score_position"
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			1990182022602545,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.CompareVar,
+				null,
+				0,
+				false,
+				false,
+				false,
+				2096793490323055,
+				false
+				,[
+				[
+					11,
+					"facebook_login"
+				]
+,				[
+					8,
+					0
+				]
+,				[
+					7,
+					[
+						0,
+						0
+					]
+				]
+				]
+			]
+			],
+			[
 			]
 		]
 		]
@@ -50472,7 +51171,7 @@ false,true,6859516009138538,false
 	true,
 	0,
 	1,
-	115,
+	119,
 	false,
 	true,
 	2,
