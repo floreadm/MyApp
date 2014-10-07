@@ -37754,7 +37754,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -37795,7 +37795,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -37903,7 +37903,7 @@ false,true,7057388441575477,false
 					[
 					[
 						19,
-						cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+						cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 						null,
 						1,
 						false,
@@ -38215,7 +38215,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -38302,7 +38302,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -38389,7 +38389,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -38476,7 +38476,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -38563,7 +38563,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -40556,18 +40556,24 @@ false,false,2046618117240453,false
 			null,
 			false,
 			null,
-			8017032916164559,
+			5009834173136931,
 			[
 			[
-				56,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
+				19,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+				null,
 				1,
 				false,
 				false,
 				false,
-				9483262391231721,
+				8979992763465718,
 				false
+				,[
+				[
+					4,
+					56
+				]
+				]
 			]
 ,			[
 				-1,
@@ -40577,7 +40583,7 @@ false,false,2046618117240453,false
 				false,
 				false,
 				false,
-				3558928848046641,
+				1671993443885105,
 				false
 				,[
 				[
@@ -40659,18 +40665,24 @@ false,false,2046618117240453,false
 			null,
 			false,
 			null,
-			7776734803680662,
+			6582559516058371,
 			[
 			[
-				65,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
+				19,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+				null,
 				1,
 				false,
 				false,
 				false,
-				3817210723253552,
+				1383597372319365,
 				false
+				,[
+				[
+					4,
+					65
+				]
+				]
 			]
 			],
 			[
@@ -40947,18 +40959,24 @@ false,false,2046618117240453,false
 			null,
 			false,
 			null,
-			6640409381646486,
+			5408651445832408,
 			[
 			[
-				4,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
+				19,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+				null,
 				1,
 				false,
 				false,
 				false,
-				2604621091025328,
+				4245994468291704,
 				false
+				,[
+				[
+					4,
+					4
+				]
+				]
 			]
 			],
 			[
@@ -41067,30 +41085,19 @@ false,false,2046618117240453,false
 ,		[
 			0,
 			null,
-			true,
+			false,
 			null,
 			5529112486467997,
 			[
 			[
-				72,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
-				1,
-				false,
-				false,
-				false,
-				6582793601934586,
-				false
-			]
-,			[
 				19,
-				cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 				null,
 				1,
 				false,
 				false,
 				false,
-				2458860138953275,
+				2488058927031013,
 				false
 				,[
 				[
@@ -41284,18 +41291,24 @@ false,false,2046618117240453,false
 			null,
 			false,
 			null,
-			3357148704,
+			4310527898147789,
 			[
 			[
-				59,
-				cr.behaviors.Rex_Button2.prototype.cnds.OnClick,
-				"Button",
+				19,
+				cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+				null,
 				1,
 				false,
 				false,
 				false,
-				7259648225196746,
+				2800687727291661,
 				false
+				,[
+				[
+					4,
+					59
+				]
+				]
 			]
 			],
 			[
@@ -42817,7 +42830,7 @@ false,true,3989474741624965,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -43647,7 +43660,7 @@ false,true,3989474741624965,false
 					[
 					[
 						19,
-						cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+						cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 						null,
 						1,
 						false,
@@ -43980,7 +43993,7 @@ false,true,3989474741624965,false
 					[
 					[
 						19,
-						cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+						cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 						null,
 						1,
 						false,
