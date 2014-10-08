@@ -27582,7 +27582,7 @@ cr.getProjectModel = function() { return [
 			false,
 			8095613203783892,
 			[
-				["img/joacadinnou-sheet0.png", 36217, 0, 0, 640, 1136, 1, 0.5, 0.5,[],[-0.05468699336051941,-0.2491199970245361,0,-0.2588030099868774,0.06093800067901611,-0.2526410222053528,0,0.4718310236930847],0]
+				["img/joacadinnou-sheet0.png", 33487, 0, 0, 640, 1136, 1, 0.5, 0.5,[],[],0]
 			]
 			]
 		],
@@ -28684,7 +28684,31 @@ cr.getProjectModel = function() { return [
 			false,
 			2597938837807974,
 			[
-				["img/error_message-sheet0.png", 2338, 0, 0, 585, 34, 1, 0.5008547306060791, 0.5,[],[],0]
+				["img/error_message-sheet0.png", 7817, 1, 1, 585, 34, 1, 0.5008547306060791, 0.5,[],[],0]
+			]
+			]
+,			[
+			"Input",
+			5,
+			false,
+			1,
+			0,
+			false,
+			6943605725561324,
+			[
+				["img/error_message-sheet0.png", 7817, 1, 65, 585, 34, 1, 0.5008547306060791, 0.5,[],[],0]
+			]
+			]
+,			[
+			"Terms",
+			5,
+			false,
+			1,
+			0,
+			false,
+			8362782781868513,
+			[
+				["img/error_message-sheet0.png", 7817, 1, 129, 585, 34, 1, 0.5008547306060791, 0.5,[],[],0]
 			]
 			]
 		],
@@ -28810,23 +28834,6 @@ cr.getProjectModel = function() { return [
 	]
 ,	[
 		"t88",
-		cr.plugins_.Text,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		1933172523397662,
-		[],
-		null
-	]
-,	[
-		"t89",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -28856,7 +28863,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t90",
+		"t89",
 		cr.plugins_.Arr,
 		false,
 		[],
@@ -28873,7 +28880,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t91",
+		"t90",
 		cr.plugins_.PhonegapVibration,
 		false,
 		[],
@@ -28891,7 +28898,7 @@ cr.getProjectModel = function() { return [
 		,[]
 	]
 ,	[
-		"t92",
+		"t91",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -28921,7 +28928,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t93",
+		"t92",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -28938,7 +28945,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t94",
+		"t93",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -28977,7 +28984,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t95",
+		"t94",
 		cr.plugins_.cjs,
 		false,
 		[],
@@ -28994,7 +29001,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t96",
+		"t95",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29024,7 +29031,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t97",
+		"t96",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29054,7 +29061,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t98",
+		"t97",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29084,7 +29091,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t99",
+		"t98",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29125,7 +29132,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t100",
+		"t99",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29166,7 +29173,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t101",
+		"t100",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29207,7 +29214,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t102",
+		"t101",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29244,6 +29251,47 @@ cr.getProjectModel = function() { return [
 		false,
 		false,
 		6202764056285374,
+		[],
+		null
+	]
+,	[
+		"t102",
+		cr.plugins_.Sprite,
+		false,
+		[],
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			1535532526035751,
+			[
+				["img/ajaxloadermic-sheet0.png", 567, 1, 1, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet0.png", 567, 1, 33, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet0.png", 567, 1, 65, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet0.png", 567, 1, 97, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet1.png", 532, 1, 1, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet1.png", 532, 1, 33, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet1.png", 532, 1, 65, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet1.png", 532, 1, 97, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet2.png", 610, 1, 1, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet2.png", 610, 1, 33, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet2.png", 610, 1, 65, 126, 22, 1, 0.5, 0.5,[],[],0],
+				["img/ajaxloadermic-sheet2.png", 610, 1, 97, 126, 22, 1, 0.5, 0.5,[],[],0]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		1376678274339737,
 		[],
 		null
 	]
@@ -30872,7 +30920,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[30, 475, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				98,
+				97,
 				88,
 				[
 				],
@@ -30887,7 +30935,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[30, 395, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				97,
+				96,
 				87,
 				[
 				],
@@ -30902,7 +30950,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[30, 315, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				96,
+				95,
 				116,
 				[
 				],
@@ -31244,46 +31292,6 @@ cr.getProjectModel = function() { return [
 					1
 				]
 			]
-,			[
-				[325.5693359375, -93.52395629882813, 0, 483.8216552734375, 41, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				88,
-				106,
-				[
-				],
-				[
-				],
-				[
-					"Nu ai completat toate datele.",
-					1,
-					"14pt Verdana",
-					"rgb(108,11,0)",
-					1,
-					0,
-					1,
-					0,
-					0
-				]
-			]
-,			[
-				[315, 28, 0, 483.8216552734375, 41, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				88,
-				102,
-				[
-				],
-				[
-				],
-				[
-					"Nu ai completat toate datele.",
-					1,
-					"14pt Verdana",
-					"rgb(108,11,0)",
-					1,
-					0,
-					1,
-					0,
-					0
-				]
-			]
 			],
 			[			]
 		]
@@ -31542,7 +31550,7 @@ cr.getProjectModel = function() { return [
 		[
 			[
 				null,
-				95,
+				94,
 				115,
 				[
 				],
@@ -31648,7 +31656,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[179, 113, 0, 503, 75, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
+				[310, 113, 0, 500, 75, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
 				59,
 				112,
 				[
@@ -31663,7 +31671,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[191, 76, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				[320, 76, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
 				45,
 				113,
 				[
@@ -31686,8 +31694,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[485, 76, 0, 149, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				93,
+				[392, 166, 0, 149, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				92,
 				117,
 				[
 				],
@@ -31699,7 +31707,7 @@ cr.getProjectModel = function() { return [
 					"0123456789",
 					"10",
 					1,
-					0,
+					1,
 					0,
 					0,
 					0,
@@ -31709,8 +31717,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[401, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
-				92,
+				[307, 207, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
+				91,
 				118,
 				[
 				],
@@ -32264,7 +32272,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[325, 617, 0, 220, 19, 0, 0, 1, 0.5, 0.5263158082962036, 0, 0, []],
-				94,
+				93,
 				120,
 				[
 				],
@@ -32279,7 +32287,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[163, 413, 0, 126, 22, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				99,
+				98,
 				21,
 				[
 				],
@@ -32294,7 +32302,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[480, 414, 0, 126, 22, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				100,
+				99,
 				55,
 				[
 				],
@@ -32309,7 +32317,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[164, 899, 0, 126, 22, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				101,
+				100,
 				89,
 				[
 				],
@@ -32324,7 +32332,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[481, 902, 0, 126, 22, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				102,
+				101,
 				95,
 				[
 				],
@@ -32731,7 +32739,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[321, 619, 0, 531, 79, 0, 0, 1, 0.5009416341781616, 0.5063291192054749, 0, 0, []],
-				89,
+				88,
 				107,
 				[
 				],
@@ -32786,7 +32794,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[330, 472, 0, 220, 19, 0, 0, 1, 0.5, 0.5263158082962036, 0, 0, []],
-				94,
+				93,
 				119,
 				[
 				],
@@ -32794,6 +32802,21 @@ cr.getProjectModel = function() { return [
 				],
 				[
 					1,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[335, 445, 0, 126, 22, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				102,
+				102,
+				[
+				],
+				[
+				],
+				[
+					0,
 					"Default",
 					0,
 					1
@@ -33068,7 +33091,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				null,
-				90,
+				89,
 				108,
 				[
 				],
@@ -34933,7 +34956,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -34974,7 +34997,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -35086,7 +35109,7 @@ false,true,7057388441575477,false
 					[
 					[
 						19,
-						cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+						cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 						null,
 						1,
 						false,
@@ -35398,7 +35421,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -35485,7 +35508,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -35572,7 +35595,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -35659,7 +35682,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -35746,7 +35769,7 @@ false,true,7057388441575477,false
 				[
 				[
 					19,
-					cr.plugins_.Touch.prototype.cnds.OnTouchObject,
+					cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
 					null,
 					1,
 					false,
@@ -36778,7 +36801,7 @@ false,true,7978056896885376,false
 				]
 			]
 ,			[
-				92,
+				91,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				3146927383480646,
@@ -36791,7 +36814,7 @@ false,true,7978056896885376,false
 				]
 			]
 ,			[
-				93,
+				92,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				3030912349133255,
@@ -36803,6 +36826,19 @@ false,true,7978056896885376,false
 						23,
 						"score_position"
 					]
+				]
+				]
+			]
+,			[
+				92,
+				cr.plugins_.Spritefont2.prototype.acts.SetVisible,
+				null,
+				4723948089876328,
+				false
+				,[
+				[
+					3,
+					1
 				]
 				]
 			]
@@ -36963,19 +36999,6 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				92,
-				cr.plugins_.Sprite.prototype.acts.SetVisible,
-				null,
-				604517297150346,
-				false
-				,[
-				[
-					3,
-					1
-				]
-				]
-			]
-,			[
 				-1,
 				cr.system_object.prototype.acts.SetVar,
 				null,
@@ -36994,22 +37017,6 @@ false,true,7978056896885376,false
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
-					]
-				]
-				]
-			]
-,			[
-				93,
-				cr.plugins_.Spritefont2.prototype.acts.SetText,
-				null,
-				1436103098869477,
-				false
-				,[
-				[
-					7,
-					[
-						23,
-						"score_position"
 					]
 				]
 				]
@@ -37912,10 +37919,10 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				88,
-				cr.plugins_.Text.prototype.acts.SetVisible,
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
-				6543433511130692,
+				8478220471386456,
 				false
 				,[
 				[
@@ -37967,10 +37974,10 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				88,
-				cr.plugins_.Text.prototype.acts.SetVisible,
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
-				6606023400701071,
+				6550619223881215,
 				false
 				,[
 				[
@@ -37980,18 +37987,22 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				88,
-				cr.plugins_.Text.prototype.acts.SetText,
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
 				null,
-				1641380253276552,
+				2254997577991402,
 				false
 				,[
 				[
-					7,
+					1,
 					[
 						2,
-						"Nu ai completat toate datele"
+						"Input"
 					]
+				]
+,				[
+					3,
+					1
 				]
 				]
 			]
@@ -38044,10 +38055,10 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				88,
-				cr.plugins_.Text.prototype.acts.SetVisible,
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
-				5903150506310989,
+				5374384368416036,
 				false
 				,[
 				[
@@ -38057,18 +38068,22 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				88,
-				cr.plugins_.Text.prototype.acts.SetText,
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
 				null,
-				2957804250781429,
+				4206047496328691,
 				false
 				,[
 				[
-					7,
+					1,
 					[
 						2,
-						"Trebuie sa fii de acord cu termenii si conditiile."
+						"Terms"
 					]
+				]
+,				[
+					3,
+					1
 				]
 				]
 			]
@@ -38232,7 +38247,7 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					95,
+					94,
 					cr.plugins_.cjs.prototype.acts.ExecuteJS,
 					null,
 					366281352265881,
@@ -38488,7 +38503,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				95,
+				94,
 				cr.plugins_.cjs.prototype.acts.ExecuteJS,
 				null,
 				1105156830345488,
@@ -39113,6 +39128,26 @@ false,false,1262728931712447,false
 				[
 				[
 					84,
+					cr.plugins_.Sprite.prototype.acts.SetAnim,
+					null,
+					1592156223922037,
+					false
+					,[
+					[
+						1,
+						[
+							2,
+							"Default"
+						]
+					]
+,					[
+						3,
+						1
+					]
+					]
+				]
+,				[
+					84,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					8801191558377271,
@@ -39342,6 +39377,26 @@ false,false,1262728931712447,false
 				[
 				[
 					84,
+					cr.plugins_.Sprite.prototype.acts.SetAnim,
+					null,
+					5962526959528556,
+					false
+					,[
+					[
+						1,
+						[
+							2,
+							"Default"
+						]
+					]
+,					[
+						3,
+						1
+					]
+					]
+				]
+,				[
+					84,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					668586686619402,
@@ -39446,6 +39501,26 @@ false,false,1262728931712447,false
 			],
 			[
 			[
+				84,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null,
+				3754791967061132,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"Default"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+,			[
 				84,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
@@ -42915,7 +42990,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								91,
+								90,
 								cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
 								null,
 								9284226563053634,
@@ -43492,7 +43567,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								91,
+								90,
 								cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
 								null,
 								600862327531292,
@@ -45100,7 +45175,7 @@ false,true,8663412316852696,false
 				]
 			]
 ,			[
-				90,
+				89,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				9204511214838202,
@@ -45127,57 +45202,16 @@ false,true,8663412316852696,false
 				3842248969149784,
 				false
 			]
-			]
-			,[
-			[
-				0,
+,			[
+				102,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
-				false,
-				null,
-				8652562871505134,
+				8445292246761794,
+				false
+				,[
 				[
-				[
-					-1,
-					cr.system_object.prototype.cnds.CompareVar,
-					null,
-					0,
-					false,
-					false,
-					false,
-					6433092061520771,
-					false
-					,[
-					[
-						11,
-						"position_layout_loaded"
-					]
-,					[
-						8,
-						0
-					]
-,					[
-						7,
-						[
-							0,
-							0
-						]
-					]
-					]
-				]
-				],
-				[
-				[
-					94,
-					cr.plugins_.Sprite.prototype.acts.SetVisible,
-					null,
-					1122421419878832,
-					false
-					,[
-					[
-						3,
-						1
-					]
-					]
+					3,
+					1
 				]
 				]
 			]
@@ -45188,7 +45222,7 @@ false,true,8663412316852696,false
 			null,
 			false,
 			null,
-			938120757488029,
+			3280700670048443,
 			[
 			[
 				62,
@@ -45198,7 +45232,7 @@ false,true,8663412316852696,false
 				false,
 				false,
 				false,
-				3602931065434845,
+				8179783456766824,
 				false
 				,[
 				[
@@ -45213,14 +45247,14 @@ false,true,8663412316852696,false
 			],
 			[
 			[
-				90,
+				89,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				2449841598824843,
 				false
 			]
 ,			[
-				90,
+				89,
 				cr.plugins_.Arr.prototype.acts.JSONLoad,
 				null,
 				5214363075061846,
@@ -45258,58 +45292,6 @@ false,true,8663412316852696,false
 				]
 				]
 			]
-,			[
-				94,
-				cr.plugins_.Sprite.prototype.acts.SetVisible,
-				null,
-				7472053416006804,
-				false
-				,[
-				[
-					3,
-					0
-				]
-				]
-			]
-			]
-		]
-,		[
-			0,
-			null,
-			false,
-			null,
-			9788332040702891,
-			[
-			[
-				-1,
-				cr.system_object.prototype.cnds.CompareVar,
-				null,
-				0,
-				false,
-				false,
-				false,
-				6434770402176259,
-				false
-				,[
-				[
-					11,
-					"position_layout_loaded"
-				]
-,				[
-					8,
-					0
-				]
-,				[
-					7,
-					[
-						0,
-						1
-					]
-				]
-				]
-			]
-			],
-			[
 			]
 			,[
 			[
@@ -45317,25 +45299,22 @@ false,true,8663412316852696,false
 				null,
 				false,
 				null,
-				1304063503302128,
+				6364694963875712,
 				[
 				[
-					62,
-					cr.plugins_.AJAX.prototype.cnds.OnComplete,
+					89,
+					cr.plugins_.Arr.prototype.cnds.ArrForEach,
 					null,
-					1,
+					0,
+					true,
 					false,
 					false,
-					false,
-					9468308327499042,
+					7331850807471331,
 					false
 					,[
 					[
-						1,
-						[
-							2,
-							"WinnerData"
-						]
+						3,
+						1
 					]
 					]
 				]
@@ -45348,22 +45327,39 @@ false,true,8663412316852696,false
 					null,
 					false,
 					null,
-					1632787662943639,
+					9806657382135689,
 					[
 					[
-						90,
-						cr.plugins_.Arr.prototype.cnds.ArrForEach,
+						-1,
+						cr.system_object.prototype.cnds.Compare,
 						null,
 						0,
-						true,
 						false,
 						false,
-						7878158950991706,
+						false,
+						4895854754047663,
 						false
 						,[
 						[
-							3,
-							1
+							7,
+							[
+								20,
+								89,
+								cr.plugins_.Arr.prototype.exps.CurY,
+								false,
+								null
+							]
+						]
+,						[
+							8,
+							0
+						]
+,						[
+							7,
+							[
+								0,
+								0
+							]
 						]
 						]
 					]
@@ -45376,7 +45372,142 @@ false,true,8663412316852696,false
 						null,
 						false,
 						null,
-						2591624033298809,
+						5740111817897164,
+						[
+						[
+							89,
+							cr.plugins_.Arr.prototype.cnds.CompareCurrent,
+							null,
+							0,
+							false,
+							false,
+							false,
+							4830980647408434,
+							false
+							,[
+							[
+								8,
+								0
+							]
+,							[
+								7,
+								[
+									2,
+									"false"
+								]
+							]
+							]
+						]
+						],
+						[
+						[
+							-1,
+							cr.system_object.prototype.acts.SetVar,
+							null,
+							8497605707316376,
+							false
+							,[
+							[
+								11,
+								"is_winner"
+							]
+,							[
+								7,
+								[
+									0,
+									0
+								]
+							]
+							]
+						]
+,						[
+							88,
+							cr.plugins_.Sprite.prototype.acts.SetVisible,
+							null,
+							5126352174779223,
+							false
+							,[
+							[
+								3,
+								1
+							]
+							]
+						]
+,						[
+							102,
+							cr.plugins_.Sprite.prototype.acts.SetVisible,
+							null,
+							5979869839986416,
+							false
+							,[
+							[
+								3,
+								0
+							]
+							]
+						]
+						]
+					]
+					]
+				]
+,				[
+					0,
+					null,
+					false,
+					null,
+					3186810152293839,
+					[
+					[
+						-1,
+						cr.system_object.prototype.cnds.CompareVar,
+						null,
+						0,
+						false,
+						false,
+						false,
+						6862231198260634,
+						false
+						,[
+						[
+							11,
+							"is_winner"
+						]
+,						[
+							8,
+							0
+						]
+,						[
+							7,
+							[
+								0,
+								1
+							]
+						]
+						]
+					]
+					],
+					[
+					[
+						74,
+						cr.plugins_.Sprite.prototype.acts.SetVisible,
+						null,
+						2509195319129458,
+						false
+						,[
+						[
+							3,
+							1
+						]
+						]
+					]
+					]
+					,[
+					[
+						0,
+						null,
+						false,
+						null,
+						7625163074678618,
 						[
 						[
 							-1,
@@ -45386,14 +45517,14 @@ false,true,8663412316852696,false
 							false,
 							false,
 							false,
-							4443916125287358,
+							7933484438901039,
 							false
 							,[
 							[
 								7,
 								[
 									20,
-									90,
+									89,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -45407,7 +45538,374 @@ false,true,8663412316852696,false
 								7,
 								[
 									0,
-									0
+									2
+								]
+							]
+							]
+						]
+						],
+						[
+						[
+							-1,
+							cr.system_object.prototype.acts.CreateObject,
+							null,
+							9196545833185695,
+							false
+							,[
+							[
+								4,
+								12
+							]
+,							[
+								5,
+								[
+									0,
+									2
+								]
+							]
+,							[
+								0,
+								[
+									0,
+									320
+								]
+							]
+,							[
+								0,
+								[
+									0,
+									869
+								]
+							]
+							]
+						]
+,						[
+							12,
+							cr.plugins_.Text.prototype.acts.SetAngle,
+							null,
+							9282720881931302,
+							false
+							,[
+							[
+								0,
+								[
+									0,
+									351
+								]
+							]
+							]
+						]
+,						[
+							12,
+							cr.plugins_.Text.prototype.acts.SetFontFace,
+							null,
+							6074027529444684,
+							false
+							,[
+							[
+								1,
+								[
+									2,
+									"britannic_boldregular"
+								]
+							]
+,							[
+								3,
+								0
+							]
+							]
+						]
+,						[
+							12,
+							cr.plugins_.Text.prototype.acts.SetText,
+							null,
+							4629051933226625,
+							false
+							,[
+							[
+								7,
+								[
+									10,
+									[
+										2,
+										"SCOR: "
+									]
+									,[
+										20,
+										89,
+										cr.plugins_.Arr.prototype.exps.CurValue,
+										false,
+										null
+									]
+								]
+							]
+							]
+						]
+,						[
+							12,
+							cr.plugins_.Text.prototype.acts.SetFontSize,
+							null,
+							1473797222566076,
+							false
+							,[
+							[
+								0,
+								[
+									0,
+									26
+								]
+							]
+							]
+						]
+,						[
+							12,
+							cr.plugins_.Text.prototype.acts.SetFontColor,
+							null,
+							9437564097823916,
+							false
+							,[
+							[
+								0,
+								[
+									19,
+									cr.system_object.prototype.exps.rgb
+									,[
+[
+										0,
+										27
+									]
+,[
+										0,
+										39
+									]
+,[
+										0,
+										101
+									]
+									]
+								]
+							]
+							]
+						]
+						]
+					]
+,					[
+						0,
+						null,
+						false,
+						null,
+						6224308867483434,
+						[
+						[
+							-1,
+							cr.system_object.prototype.cnds.Compare,
+							null,
+							0,
+							false,
+							false,
+							false,
+							4992776418495286,
+							false
+							,[
+							[
+								7,
+								[
+									20,
+									89,
+									cr.plugins_.Arr.prototype.exps.CurY,
+									false,
+									null
+								]
+							]
+,							[
+								8,
+								0
+							]
+,							[
+								7,
+								[
+									0,
+									3
+								]
+							]
+							]
+						]
+						],
+						[
+						[
+							-1,
+							cr.system_object.prototype.acts.CreateObject,
+							null,
+							958357374125701,
+							false
+							,[
+							[
+								4,
+								11
+							]
+,							[
+								5,
+								[
+									0,
+									2
+								]
+							]
+,							[
+								0,
+								[
+									0,
+									327
+								]
+							]
+,							[
+								0,
+								[
+									0,
+									680
+								]
+							]
+							]
+						]
+,						[
+							11,
+							cr.plugins_.Text.prototype.acts.SetAngle,
+							null,
+							1366650625006238,
+							false
+							,[
+							[
+								0,
+								[
+									0,
+									351
+								]
+							]
+							]
+						]
+,						[
+							11,
+							cr.plugins_.Text.prototype.acts.SetFontFace,
+							null,
+							5670432456141899,
+							false
+							,[
+							[
+								1,
+								[
+									2,
+									"britannic_boldregular"
+								]
+							]
+,							[
+								3,
+								0
+							]
+							]
+						]
+,						[
+							11,
+							cr.plugins_.Text.prototype.acts.SetText,
+							null,
+							4157368374802917,
+							false
+							,[
+							[
+								7,
+								[
+									20,
+									89,
+									cr.plugins_.Arr.prototype.exps.CurValue,
+									false,
+									null
+								]
+							]
+							]
+						]
+,						[
+							11,
+							cr.plugins_.Text.prototype.acts.SetFontSize,
+							null,
+							9461397908986471,
+							false
+							,[
+							[
+								0,
+								[
+									0,
+									26
+								]
+							]
+							]
+						]
+,						[
+							11,
+							cr.plugins_.Text.prototype.acts.SetFontColor,
+							null,
+							1937428549997442,
+							false
+							,[
+							[
+								0,
+								[
+									19,
+									cr.system_object.prototype.exps.rgb
+									,[
+[
+										0,
+										27
+									]
+,[
+										0,
+										39
+									]
+,[
+										0,
+										101
+									]
+									]
+								]
+							]
+							]
+						]
+						]
+					]
+,					[
+						0,
+						null,
+						false,
+						null,
+						7122200401139327,
+						[
+						[
+							-1,
+							cr.system_object.prototype.cnds.Compare,
+							null,
+							0,
+							false,
+							false,
+							false,
+							5337229839142414,
+							false
+							,[
+							[
+								7,
+								[
+									20,
+									89,
+									cr.plugins_.Arr.prototype.exps.CurY,
+									false,
+									null
+								]
+							]
+,							[
+								8,
+								0
+							]
+,							[
+								7,
+								[
+									0,
+									4
 								]
 							]
 							]
@@ -45421,17 +45919,17 @@ false,true,8663412316852696,false
 							null,
 							false,
 							null,
-							844071091885992,
+							5054112276979392,
 							[
 							[
-								90,
+								89,
 								cr.plugins_.Arr.prototype.cnds.CompareCurrent,
 								null,
 								0,
 								false,
 								false,
 								false,
-								930320664273478,
+								9995939820192222,
 								false
 								,[
 								[
@@ -45450,30 +45948,10 @@ false,true,8663412316852696,false
 							],
 							[
 							[
-								-1,
-								cr.system_object.prototype.acts.SetVar,
-								null,
-								2593858135987794,
-								false
-								,[
-								[
-									11,
-									"is_winner"
-								]
-,								[
-									7,
-									[
-										0,
-										0
-									]
-								]
-								]
-							]
-,							[
-								89,
+								86,
 								cr.plugins_.Sprite.prototype.acts.SetVisible,
 								null,
-								4496904379522126,
+								1684954207848847,
 								false
 								,[
 								[
@@ -45482,589 +45960,86 @@ false,true,8663412316852696,false
 								]
 								]
 							]
-							]
-						]
-						]
-					]
-,					[
-						0,
-						null,
-						false,
-						null,
-						6804449622295009,
-						[
-						[
-							-1,
-							cr.system_object.prototype.cnds.CompareVar,
-							null,
-							0,
-							false,
-							false,
-							false,
-							6967649539312484,
-							false
-							,[
-							[
-								11,
-								"is_winner"
-							]
 ,							[
-								8,
-								0
-							]
-,							[
-								7,
+								102,
+								cr.plugins_.Sprite.prototype.acts.SetVisible,
+								null,
+								3361300895596141,
+								false
+								,[
 								[
-									0,
-									1
+									3,
+									0
+								]
 								]
 							]
 							]
 						]
-						],
-						[
-						[
-							74,
-							cr.plugins_.Sprite.prototype.acts.SetVisible,
-							null,
-							7825397017831562,
-							false
-							,[
-							[
-								3,
-								1
-							]
-							]
-						]
-						]
-						,[
-						[
+,						[
 							0,
 							null,
 							false,
 							null,
-							5920200621365347,
+							5534010359816427,
 							[
 							[
 								-1,
-								cr.system_object.prototype.cnds.Compare,
+								cr.system_object.prototype.cnds.Else,
 								null,
 								0,
 								false,
 								false,
 								false,
-								8748385552910341,
+								283598968994133,
 								false
-								,[
-								[
-									7,
-									[
-										20,
-										90,
-										cr.plugins_.Arr.prototype.exps.CurY,
-										false,
-										null
-									]
-								]
-,								[
-									8,
-									0
-								]
-,								[
-									7,
-									[
-										0,
-										2
-									]
-								]
-								]
 							]
 							],
 							[
 							[
-								-1,
-								cr.system_object.prototype.acts.CreateObject,
+								62,
+								cr.plugins_.AJAX.prototype.acts.Request,
 								null,
-								8709420400154449,
-								false
-								,[
-								[
-									4,
-									12
-								]
-,								[
-									5,
-									[
-										0,
-										2
-									]
-								]
-,								[
-									0,
-									[
-										0,
-										320
-									]
-								]
-,								[
-									0,
-									[
-										0,
-										869
-									]
-								]
-								]
-							]
-,							[
-								12,
-								cr.plugins_.Text.prototype.acts.SetAngle,
-								null,
-								3371293039169106,
-								false
-								,[
-								[
-									0,
-									[
-										0,
-										351
-									]
-								]
-								]
-							]
-,							[
-								12,
-								cr.plugins_.Text.prototype.acts.SetFontFace,
-								null,
-								7264766328124288,
+								3108247425301049,
 								false
 								,[
 								[
 									1,
 									[
 										2,
-										"britannic_boldregular"
+										"ImageData"
 									]
 								]
 ,								[
-									3,
-									0
-								]
-								]
-							]
-,							[
-								12,
-								cr.plugins_.Text.prototype.acts.SetText,
-								null,
-								1561849140000932,
-								false
-								,[
-								[
-									7,
+									1,
 									[
 										10,
 										[
-											2,
-											"SCOR: "
+											23,
+											"GENERATE_IMAGE_URL"
 										]
 										,[
-											20,
-											90,
-											cr.plugins_.Arr.prototype.exps.CurValue,
-											false,
-											null
-										]
-									]
-								]
-								]
-							]
-,							[
-								12,
-								cr.plugins_.Text.prototype.acts.SetFontSize,
-								null,
-								7875239403929899,
-								false
-								,[
-								[
-									0,
-									[
-										0,
-										26
-									]
-								]
-								]
-							]
-,							[
-								12,
-								cr.plugins_.Text.prototype.acts.SetFontColor,
-								null,
-								5238919618900253,
-								false
-								,[
-								[
-									0,
-									[
-										19,
-										cr.system_object.prototype.exps.rgb
-										,[
-[
-											0,
-											27
-										]
-,[
-											0,
-											39
-										]
-,[
-											0,
-											101
-										]
-										]
-									]
-								]
-								]
-							]
-							]
-						]
-,						[
-							0,
-							null,
-							false,
-							null,
-							7227183517708255,
-							[
-							[
-								-1,
-								cr.system_object.prototype.cnds.Compare,
-								null,
-								0,
-								false,
-								false,
-								false,
-								1650329383684232,
-								false
-								,[
-								[
-									7,
-									[
-										20,
-										90,
-										cr.plugins_.Arr.prototype.exps.CurY,
-										false,
-										null
-									]
-								]
-,								[
-									8,
-									0
-								]
-,								[
-									7,
-									[
-										0,
-										3
-									]
-								]
-								]
-							]
-							],
-							[
-							[
-								-1,
-								cr.system_object.prototype.acts.CreateObject,
-								null,
-								4777947173335877,
-								false
-								,[
-								[
-									4,
-									11
-								]
-,								[
-									5,
-									[
-										0,
-										2
-									]
-								]
-,								[
-									0,
-									[
-										0,
-										327
-									]
-								]
-,								[
-									0,
-									[
-										0,
-										680
-									]
-								]
-								]
-							]
-,							[
-								11,
-								cr.plugins_.Text.prototype.acts.SetAngle,
-								null,
-								1922610774564051,
-								false
-								,[
-								[
-									0,
-									[
-										0,
-										351
-									]
-								]
-								]
-							]
-,							[
-								11,
-								cr.plugins_.Text.prototype.acts.SetFontFace,
-								null,
-								702563854048797,
-								false
-								,[
-								[
-									1,
-									[
-										2,
-										"britannic_boldregular"
-									]
-								]
-,								[
-									3,
-									0
-								]
-								]
-							]
-,							[
-								11,
-								cr.plugins_.Text.prototype.acts.SetText,
-								null,
-								9829928645777186,
-								false
-								,[
-								[
-									7,
-									[
-										20,
-										90,
-										cr.plugins_.Arr.prototype.exps.CurValue,
-										false,
-										null
-									]
-								]
-								]
-							]
-,							[
-								11,
-								cr.plugins_.Text.prototype.acts.SetFontSize,
-								null,
-								9552827057663978,
-								false
-								,[
-								[
-									0,
-									[
-										0,
-										26
-									]
-								]
-								]
-							]
-,							[
-								11,
-								cr.plugins_.Text.prototype.acts.SetFontColor,
-								null,
-								4751991264576215,
-								false
-								,[
-								[
-									0,
-									[
-										19,
-										cr.system_object.prototype.exps.rgb
-										,[
-[
-											0,
-											27
-										]
-,[
-											0,
-											39
-										]
-,[
-											0,
-											101
-										]
-										]
-									]
-								]
-								]
-							]
-							]
-						]
-,						[
-							0,
-							null,
-							false,
-							null,
-							9020741679529069,
-							[
-							[
-								-1,
-								cr.system_object.prototype.cnds.Compare,
-								null,
-								0,
-								false,
-								false,
-								false,
-								953532803250586,
-								false
-								,[
-								[
-									7,
-									[
-										20,
-										90,
-										cr.plugins_.Arr.prototype.exps.CurY,
-										false,
-										null
-									]
-								]
-,								[
-									8,
-									0
-								]
-,								[
-									7,
-									[
-										0,
-										4
-									]
-								]
-								]
-							]
-							],
-							[
-							]
-							,[
-							[
-								0,
-								null,
-								false,
-								null,
-								1262216337213588,
-								[
-								[
-									90,
-									cr.plugins_.Arr.prototype.cnds.CompareCurrent,
-									null,
-									0,
-									false,
-									false,
-									false,
-									9689514512082397,
-									false
-									,[
-									[
-										8,
-										0
-									]
-,									[
-										7,
-										[
-											2,
-											"false"
-										]
-									]
-									]
-								]
-								],
-								[
-								[
-									86,
-									cr.plugins_.Sprite.prototype.acts.SetVisible,
-									null,
-									2751093162217534,
-									false
-									,[
-									[
-										3,
-										1
-									]
-									]
-								]
-								]
-							]
-,							[
-								0,
-								null,
-								false,
-								null,
-								3377401981622711,
-								[
-								[
-									-1,
-									cr.system_object.prototype.cnds.Else,
-									null,
-									0,
-									false,
-									false,
-									false,
-									5064470276237019,
-									false
-								]
-								],
-								[
-								[
-									62,
-									cr.plugins_.AJAX.prototype.acts.Request,
-									null,
-									1841950233269884,
-									false
-									,[
-									[
-										1,
-										[
-											2,
-											"ImageData"
-										]
-									]
-,									[
-										1,
-										[
-											10,
-											[
-												23,
-												"GENERATE_IMAGE_URL"
-											]
+											19,
+											cr.system_object.prototype.exps.str
 											,[
-												19,
-												cr.system_object.prototype.exps.str
+[
+												20,
+												89,
+												cr.plugins_.Arr.prototype.exps.At,
+												false,
+												null
 												,[
 [
-													20,
-													90,
-													cr.plugins_.Arr.prototype.exps.At,
-													false,
-													null
-													,[
-[
-														0,
-														0
-													]
+													0,
+													0
+												]
 ,[
-														0,
-														1
-													]
-													]
+													0,
+													1
 												]
 												]
 											]
+											]
 										]
-									]
 									]
 								]
 								]
@@ -46109,6 +46084,19 @@ false,true,8663412316852696,false
 			],
 			[
 			[
+				102,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				6013346298934683,
+				false
+				,[
+				[
+					3,
+					0
+				]
+				]
+			]
+,			[
 				13,
 				cr.plugins_.Sprite.prototype.acts.LoadURL,
 				null,
@@ -46141,6 +46129,83 @@ false,true,8663412316852696,false
 				[
 					3,
 					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			7243395127878994,
+			[
+			[
+				62,
+				cr.plugins_.AJAX.prototype.cnds.OnError,
+				null,
+				1,
+				false,
+				false,
+				false,
+				9707505572759615,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"WinnerData"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.SetVar,
+				null,
+				7816176238477445,
+				false
+				,[
+				[
+					11,
+					"is_winner"
+				]
+,				[
+					7,
+					[
+						0,
+						0
+					]
+				]
+				]
+			]
+,			[
+				88,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				5726823399764849,
+				false
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				102,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null,
+				5071415884190112,
+				false
+				,[
+				[
+					3,
+					0
 				]
 				]
 			]
@@ -46272,7 +46337,7 @@ false,false,1577116274648502,false
 				false
 			]
 ,			[
-				90,
+				89,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				7785976417795281,
@@ -46547,28 +46612,28 @@ false,false,1577116274648502,false
 				false
 			]
 ,			[
-				99,
+				98,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				6546585137489021,
 				false
 			]
 ,			[
-				100,
+				99,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				376210847833775,
 				false
 			]
 ,			[
-				101,
+				100,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				4762070361460045,
 				false
 			]
 ,			[
-				102,
+				101,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				5062919647816151,
@@ -46614,7 +46679,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					94,
+					93,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1860624581902593,
@@ -46706,7 +46771,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				94,
+				93,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				5719929457686478,
@@ -47049,7 +47114,7 @@ false,false,1577116274648502,false
 									,[
 									[
 										4,
-										99
+										98
 									]
 ,									[
 										5,
@@ -47075,7 +47140,7 @@ false,false,1577116274648502,false
 									]
 								]
 ,								[
-									99,
+									98,
 									cr.plugins_.Sprite.prototype.acts.SetVisible,
 									null,
 									7875267588003175,
@@ -47237,7 +47302,7 @@ false,false,1577116274648502,false
 									,[
 									[
 										4,
-										100
+										99
 									]
 ,									[
 										5,
@@ -47263,7 +47328,7 @@ false,false,1577116274648502,false
 									]
 								]
 ,								[
-									100,
+									99,
 									cr.plugins_.Sprite.prototype.acts.SetVisible,
 									null,
 									2640102807612995,
@@ -47425,7 +47490,7 @@ false,false,1577116274648502,false
 									,[
 									[
 										4,
-										101
+										100
 									]
 ,									[
 										5,
@@ -47451,7 +47516,7 @@ false,false,1577116274648502,false
 									]
 								]
 ,								[
-									101,
+									100,
 									cr.plugins_.Sprite.prototype.acts.SetVisible,
 									null,
 									3758172575990225,
@@ -47613,7 +47678,7 @@ false,false,1577116274648502,false
 									,[
 									[
 										4,
-										102
+										101
 									]
 ,									[
 										5,
@@ -47639,7 +47704,7 @@ false,false,1577116274648502,false
 									]
 								]
 ,								[
-									102,
+									101,
 									cr.plugins_.Sprite.prototype.acts.SetVisible,
 									null,
 									5848511694940556,
@@ -48681,7 +48746,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					99,
+					98,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					6149401958896399,
@@ -48755,7 +48820,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					100,
+					99,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					3707414459324903,
@@ -48829,7 +48894,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					101,
+					100,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					8928463394019137,
@@ -48903,7 +48968,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					102,
+					101,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					1320098263682466,
