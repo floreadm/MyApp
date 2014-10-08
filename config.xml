@@ -23,7 +23,6 @@
 	<preference name="android-minSdkVersion" value="14" />
 	<preference name="target-device" value="handset" />
 
-	<gap:plugin name="org.apache.cordova.inappbrowser" />
 	<gap:plugin name="org.apache.cordova.vibration" version="0.3.7" />
 
 	<!-- Optional splash screen image, e.g.: -->

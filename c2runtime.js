@@ -16794,653 +16794,6 @@ cr.plugins_.Audio = function(runtime)
 }());
 ;
 ;
-cr.plugins_.Browser = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.Browser.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-		var self = this;
-		window.addEventListener("resize", function () {
-			self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnResize, self);
-		});
-		if (typeof navigator.onLine !== "undefined")
-		{
-			window.addEventListener("online", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnOnline, self);
-			});
-			window.addEventListener("offline", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnOffline, self);
-			});
-		}
-		if (typeof window.applicationCache !== "undefined")
-		{
-			window.applicationCache.addEventListener('updateready', function() {
-				self.runtime.loadingprogress = 1;
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnUpdateReady, self);
-			});
-			window.applicationCache.addEventListener('progress', function(e) {
-				self.runtime.loadingprogress = e["loaded"] / e["total"];
-			});
-		}
-		if (!this.runtime.isDirectCanvas)
-		{
-			document.addEventListener("appMobi.device.update.available", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnUpdateReady, self);
-			});
-			document.addEventListener("backbutton", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnBackButton, self);
-			});
-			document.addEventListener("menubutton", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnMenuButton, self);
-			});
-			document.addEventListener("searchbutton", function() {
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnSearchButton, self);
-			});
-			document.addEventListener("tizenhwkey", function (e) {
-				var ret;
-				switch (e["keyName"]) {
-				case "back":
-					ret = self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnBackButton, self);
-					if (!ret)
-					{
-						if (window["tizen"])
-							window["tizen"]["application"]["getCurrentApplication"]()["exit"]();
-					}
-					break;
-				case "menu":
-					ret = self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnMenuButton, self);
-					if (!ret)
-						e.preventDefault();
-					break;
-				}
-			});
-		}
-		if (this.runtime.isWindowsPhone81)
-		{
-			WinJS["Application"]["onbackclick"] = function (e)
-			{
-				return !!self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnBackButton, self);
-			};
-		}
-		this.runtime.addSuspendCallback(function(s) {
-			if (s)
-			{
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnPageHidden, self);
-			}
-			else
-			{
-				self.runtime.trigger(cr.plugins_.Browser.prototype.cnds.OnPageVisible, self);
-			}
-		});
-		this.is_arcade = (typeof window["is_scirra_arcade"] !== "undefined");
-	};
-	function Cnds() {};
-	Cnds.prototype.CookiesEnabled = function()
-	{
-		return navigator ? navigator.cookieEnabled : false;
-	};
-	Cnds.prototype.IsOnline = function()
-	{
-		return navigator ? navigator.onLine : false;
-	};
-	Cnds.prototype.HasJava = function()
-	{
-		return navigator ? navigator.javaEnabled() : false;
-	};
-	Cnds.prototype.OnOnline = function()
-	{
-		return true;
-	};
-	Cnds.prototype.OnOffline = function()
-	{
-		return true;
-	};
-	Cnds.prototype.IsDownloadingUpdate = function ()
-	{
-		if (typeof window["applicationCache"] === "undefined")
-			return false;
-		else
-			return window["applicationCache"]["status"] === window["applicationCache"]["DOWNLOADING"];
-	};
-	Cnds.prototype.OnUpdateReady = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.PageVisible = function ()
-	{
-		return !this.runtime.isSuspended;
-	};
-	Cnds.prototype.OnPageVisible = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnPageHidden = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnResize = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsFullscreen = function ()
-	{
-		return !!(document["mozFullScreen"] || document["webkitIsFullScreen"] || document["fullScreen"] || this.runtime.isNodeFullscreen);
-	};
-	Cnds.prototype.OnBackButton = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnMenuButton = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnSearchButton = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsMetered = function ()
-	{
-		var connection = navigator["connection"] || navigator["mozConnection"] || navigator["webkitConnection"];
-		if (!connection)
-			return false;
-		return connection["metered"];
-	};
-	Cnds.prototype.IsCharging = function ()
-	{
-		var battery = navigator["battery"] || navigator["mozBattery"] || navigator["webkitBattery"];
-		if (!battery)
-			return true;
-		return battery["charging"];
-	};
-	Cnds.prototype.IsPortraitLandscape = function (p)
-	{
-		var current = (window.innerWidth <= window.innerHeight ? 0 : 1);
-		return current === p;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.Alert = function (msg)
-	{
-		if (!this.runtime.isDomFree)
-			alert(msg.toString());
-	};
-	Acts.prototype.Close = function ()
-	{
-		if (this.runtime.isCocoonJs)
-			CocoonJS["App"]["forceToFinish"]();
-		else if (window["tizen"])
-			window["tizen"]["application"]["getCurrentApplication"]()["exit"]();
-		else if (navigator["app"] && navigator["app"]["exitApp"])
-			navigator["app"]["exitApp"]();
-		else if (navigator["device"] && navigator["device"]["exitApp"])
-			navigator["device"]["exitApp"]();
-		else if (!this.is_arcade && !this.runtime.isDomFree)
-			window.close();
-	};
-	Acts.prototype.Focus = function ()
-	{
-		if (this.runtime.isNodeWebkit)
-		{
-			var win = window["nwgui"]["Window"]["get"]();
-			win["focus"]();
-		}
-		else if (!this.is_arcade && !this.runtime.isDomFree)
-			window.focus();
-	};
-	Acts.prototype.Blur = function ()
-	{
-		if (this.runtime.isNodeWebkit)
-		{
-			var win = window["nwgui"]["Window"]["get"]();
-			win["blur"]();
-		}
-		else if (!this.is_arcade && !this.runtime.isDomFree)
-			window.blur();
-	};
-	Acts.prototype.GoBack = function ()
-	{
-		if (navigator["app"] && navigator["app"]["backHistory"])
-			navigator["app"]["backHistory"]();
-		else if (!this.is_arcade && !this.runtime.isDomFree && window.back)
-			window.back();
-	};
-	Acts.prototype.GoForward = function ()
-	{
-		if (!this.is_arcade && !this.runtime.isDomFree && window.forward)
-			window.forward();
-	};
-	Acts.prototype.GoHome = function ()
-	{
-		if (!this.is_arcade && !this.runtime.isDomFree && window.home)
-			window.home();
-	};
-	Acts.prototype.GoToURL = function (url, target)
-	{
-		if (this.runtime.isCocoonJs)
-			CocoonJS["App"]["openURL"](url);
-		else if (this.runtime.isEjecta)
-			ejecta["openURL"](url);
-		else if (this.runtime.isWinJS)
-			Windows["System"]["Launcher"]["launchUriAsync"](new Windows["Foundation"]["Uri"](url));
-		else if (navigator["app"] && navigator["app"]["loadUrl"])
-			navigator["app"]["loadUrl"](url, { "openExternal": true });
-		else if (this.runtime.isPhoneGap)
-			window.open(url, "_system");
-		else if (!this.is_arcade && !this.runtime.isDomFree)
-		{
-			if (target === 2 && !this.is_arcade)		// top
-				window.top.location = url;
-			else if (target === 1 && !this.is_arcade)	// parent
-				window.parent.location = url;
-			else					// self
-				window.location = url;
-		}
-	};
-	Acts.prototype.GoToURLWindow = function (url, tag)
-	{
-		if (this.runtime.isCocoonJs)
-			CocoonJS["App"]["openURL"](url);
-		else if (this.runtime.isEjecta)
-			ejecta["openURL"](url);
-		else if (this.runtime.isWinJS)
-			Windows["System"]["Launcher"]["launchUriAsync"](new Windows["Foundation"]["Uri"](url));
-		else if (navigator["app"] && navigator["app"]["loadUrl"])
-			navigator["app"]["loadUrl"](url, { "openExternal": true });
-		else if (this.runtime.isPhoneGap)
-			window.open(url, "_system");
-		else if (!this.is_arcade && !this.runtime.isDomFree)
-			window.open(url, tag);
-	};
-	Acts.prototype.Reload = function ()
-	{
-		if (!this.is_arcade && !this.runtime.isDomFree)
-			window.location.reload();
-	};
-	var firstRequestFullscreen = true;
-	var crruntime = null;
-	function onFullscreenError(e)
-	{
-		if (console && console.warn)
-			console.warn("Fullscreen request failed: ", e);
-		crruntime["setSize"](window.innerWidth, window.innerHeight);
-	};
-	Acts.prototype.RequestFullScreen = function (stretchmode)
-	{
-		if (this.runtime.isDomFree)
-		{
-			cr.logexport("[Construct 2] Requesting fullscreen is not supported on this platform - the request has been ignored");
-			return;
-		}
-		if (stretchmode >= 2)
-			stretchmode += 1;
-		if (stretchmode === 6)
-			stretchmode = 2;
-		if (this.runtime.isNodeWebkit)
-		{
-			if (!this.runtime.isNodeFullscreen)
-			{
-				window["nwgui"]["Window"]["get"]()["enterFullscreen"]();
-				this.runtime.isNodeFullscreen = true;
-				this.runtime.fullscreen_scaling = (stretchmode >= 2 ? stretchmode : 0);
-			}
-		}
-		else
-		{
-			if (document["mozFullScreen"] || document["webkitIsFullScreen"] || !!document["msFullscreenElement"] || document["fullScreen"] || document["fullScreenElement"])
-			{
-				return;
-			}
-			this.runtime.fullscreen_scaling = (stretchmode >= 2 ? stretchmode : 0);
-			var elem = this.runtime.canvasdiv || this.runtime.canvas;
-			if (firstRequestFullscreen)
-			{
-				firstRequestFullscreen = false;
-				crruntime = this.runtime;
-				elem.addEventListener("mozfullscreenerror", onFullscreenError);
-				elem.addEventListener("webkitfullscreenerror", onFullscreenError);
-				elem.addEventListener("MSFullscreenError", onFullscreenError);
-				elem.addEventListener("fullscreenerror", onFullscreenError);
-			}
-			if (elem["requestFullscreen"])
-				elem["requestFullscreen"]();
-			else if (elem["mozRequestFullScreen"])
-				elem["mozRequestFullScreen"]();
-			else if (elem["msRequestFullscreen"])
-				elem["msRequestFullscreen"]();
-			else if (elem["webkitRequestFullScreen"])
-			{
-				if (typeof Element !== "undefined" && typeof Element["ALLOW_KEYBOARD_INPUT"] !== "undefined")
-					elem["webkitRequestFullScreen"](Element["ALLOW_KEYBOARD_INPUT"]);
-				else
-					elem["webkitRequestFullScreen"]();
-			}
-		}
-	};
-	Acts.prototype.CancelFullScreen = function ()
-	{
-		if (this.runtime.isDomFree)
-		{
-			cr.logexport("[Construct 2] Exiting fullscreen is not supported on this platform - the request has been ignored");
-			return;
-		}
-		if (this.runtime.isNodeWebkit)
-		{
-			if (this.runtime.isNodeFullscreen)
-			{
-				window["nwgui"]["Window"]["get"]()["leaveFullscreen"]();
-				this.runtime.isNodeFullscreen = false;
-			}
-		}
-		else
-		{
-			if (document["exitFullscreen"])
-				document["exitFullscreen"]();
-			else if (document["mozCancelFullScreen"])
-				document["mozCancelFullScreen"]();
-			else if (document["msExitFullscreen"])
-				document["msExitFullscreen"]();
-			else if (document["webkitCancelFullScreen"])
-				document["webkitCancelFullScreen"]();
-		}
-	};
-	Acts.prototype.Vibrate = function (pattern_)
-	{
-		try {
-			var arr = pattern_.split(",");
-			var i, len;
-			for (i = 0, len = arr.length; i < len; i++)
-			{
-				arr[i] = parseInt(arr[i], 10);
-			}
-			if (navigator["vibrate"])
-				navigator["vibrate"](arr);
-			else if (navigator["mozVibrate"])
-				navigator["mozVibrate"](arr);
-			else if (navigator["webkitVibrate"])
-				navigator["webkitVibrate"](arr);
-			else if (navigator["msVibrate"])
-				navigator["msVibrate"](arr);
-		}
-		catch (e) {}
-	};
-	Acts.prototype.InvokeDownload = function (url_, filename_)
-	{
-		var a = document.createElement("a");
-		if (typeof a["download"] === "undefined")
-		{
-			window.open(url_);
-		}
-		else
-		{
-			var body = document.getElementsByTagName("body")[0];
-			a.textContent = filename_;
-			a.href = url_;
-			a["download"] = filename_;
-			body.appendChild(a);
-			var clickEvent = document.createEvent("MouseEvent");
-			clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-			a.dispatchEvent(clickEvent);
-			body.removeChild(a);
-		}
-	};
-	Acts.prototype.InvokeDownloadString = function (str_, mimetype_, filename_)
-	{
-		var datauri = "data:" + mimetype_ + "," + encodeURIComponent(str_);
-		var a = document.createElement("a");
-		if (typeof a["download"] === "undefined")
-		{
-			window.open(datauri);
-		}
-		else
-		{
-			var body = document.getElementsByTagName("body")[0];
-			a.textContent = filename_;
-			a.href = datauri;
-			a["download"] = filename_;
-			body.appendChild(a);
-			var clickEvent = document.createEvent("MouseEvent");
-			clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-			a.dispatchEvent(clickEvent);
-			body.removeChild(a);
-		}
-	};
-	Acts.prototype.ConsoleLog = function (type_, msg_)
-	{
-		if (typeof console === "undefined")
-			return;
-		if (type_ === 0 && console.log)
-			console.log(msg_.toString());
-		if (type_ === 1 && console.warn)
-			console.warn(msg_.toString());
-		if (type_ === 2 && console.error)
-			console.error(msg_.toString());
-	};
-	Acts.prototype.ConsoleGroup = function (name_)
-	{
-		if (console && console.group)
-			console.group(name_);
-	};
-	Acts.prototype.ConsoleGroupEnd = function ()
-	{
-		if (console && console.groupEnd)
-			console.groupEnd();
-	};
-	Acts.prototype.ExecJs = function (js_)
-	{
-		try {
-			if (eval)
-				eval(js_);
-		}
-		catch (e)
-		{
-			if (console && console.error)
-				console.error("Error executing Javascript: ", e);
-		}
-	};
-	var orientations = [
-		"portrait",
-		"landscape",
-		"portrait-primary",
-		"portrait-secondary",
-		"landscape-primary",
-		"landscape-secondary"
-	];
-	Acts.prototype.LockOrientation = function (o)
-	{
-		o = Math.floor(o);
-		if (o < 0 || o >= orientations.length)
-			return;
-		this.runtime.autoLockOrientation = false;
-		var orientation = orientations[o];
-		if (screen["lockOrientation"])
-			screen["lockOrientation"](orientation);
-		else if (screen["webkitLockOrientation"])
-			screen["webkitLockOrientation"](orientation);
-		else if (screen["mozLockOrientation"])
-			screen["mozLockOrientation"](orientation);
-		else if (screen["msLockOrientation"])
-			screen["msLockOrientation"](orientation);
-	};
-	Acts.prototype.UnlockOrientation = function ()
-	{
-		this.runtime.autoLockOrientation = false;
-		if (screen["unlockOrientation"])
-			screen["unlockOrientation"]();
-		else if (screen["webkitUnlockOrientation"])
-			screen["webkitUnlockOrientation"]();
-		else if (screen["mozUnlockOrientation"])
-			screen["mozUnlockOrientation"]();
-		else if (screen["msUnlockOrientation"])
-			screen["msUnlockOrientation"]();
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.URL = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.toString());
-	};
-	Exps.prototype.Protocol = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.protocol);
-	};
-	Exps.prototype.Domain = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.hostname);
-	};
-	Exps.prototype.PathName = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.pathname);
-	};
-	Exps.prototype.Hash = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.hash);
-	};
-	Exps.prototype.Referrer = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : document.referrer);
-	};
-	Exps.prototype.Title = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : document.title);
-	};
-	Exps.prototype.Name = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : navigator.appName);
-	};
-	Exps.prototype.Version = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : navigator.appVersion);
-	};
-	Exps.prototype.Language = function (ret)
-	{
-		if (navigator && navigator.language)
-			ret.set_string(navigator.language);
-		else
-			ret.set_string("");
-	};
-	Exps.prototype.Platform = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : navigator.platform);
-	};
-	Exps.prototype.Product = function (ret)
-	{
-		if (navigator && navigator.product)
-			ret.set_string(navigator.product);
-		else
-			ret.set_string("");
-	};
-	Exps.prototype.Vendor = function (ret)
-	{
-		if (navigator && navigator.vendor)
-			ret.set_string(navigator.vendor);
-		else
-			ret.set_string("");
-	};
-	Exps.prototype.UserAgent = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : navigator.userAgent);
-	};
-	Exps.prototype.QueryString = function (ret)
-	{
-		ret.set_string(this.runtime.isDomFree ? "" : window.location.search);
-	};
-	Exps.prototype.QueryParam = function (ret, paramname)
-	{
-		if (this.runtime.isDomFree)
-		{
-			ret.set_string("");
-			return;
-		}
-		var match = RegExp('[?&]' + paramname + '=([^&]*)').exec(window.location.search);
-		if (match)
-			ret.set_string(decodeURIComponent(match[1].replace(/\+/g, ' ')));
-		else
-			ret.set_string("");
-	};
-	Exps.prototype.Bandwidth = function (ret)
-	{
-		var connection = navigator["connection"] || navigator["mozConnection"] || navigator["webkitConnection"];
-		if (!connection)
-			ret.set_float(Number.POSITIVE_INFINITY);
-		else
-			ret.set_float(connection["bandwidth"]);
-	};
-	Exps.prototype.BatteryLevel = function (ret)
-	{
-		var battery = navigator["battery"] || navigator["mozBattery"] || navigator["webkitBattery"];
-		if (!battery)
-			ret.set_float(1);
-		else
-			ret.set_float(battery["level"]);
-	};
-	Exps.prototype.BatteryTimeLeft = function (ret)
-	{
-		var battery = navigator["battery"] || navigator["mozBattery"] || navigator["webkitBattery"];
-		if (!battery)
-			ret.set_float(Number.POSITIVE_INFINITY);
-		else
-			ret.set_float(battery["dischargingTime"]);
-	};
-	Exps.prototype.ExecJS = function (ret, js_)
-	{
-		if (!eval)
-		{
-			ret.set_any(0);
-			return;
-		}
-		var result = 0;
-		try {
-			result = eval(js_);
-		}
-		catch (e)
-		{
-			if (console && console.error)
-				console.error("Error executing Javascript: ", e);
-		}
-		if (typeof result === "number")
-			ret.set_any(result);
-		else if (typeof result === "string")
-			ret.set_any(result);
-		else if (typeof result === "boolean")
-			ret.set_any(result ? 1 : 0);
-		else
-			ret.set_any(0);
-	};
-	Exps.prototype.ScreenWidth = function (ret)
-	{
-		ret.set_int(screen.width);
-	};
-	Exps.prototype.ScreenHeight = function (ret)
-	{
-		ret.set_int(screen.height);
-	};
-	Exps.prototype.DevicePixelRatio = function (ret)
-	{
-		ret.set_float(this.runtime.devicePixelRatio);
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
 cr.plugins_.Button = function(runtime)
 {
 	this.runtime = runtime;
@@ -18514,498 +17867,6 @@ function binb_sha256(m, l)
 }());
 ;
 ;
-cr.plugins_.CJSAds = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var input_text = "";
-	var products_list = [];
-	var requested_score = 0;
-	var bannerPosition = 0;
-	var preloadingBanner = false;
-	var bannerReady = false;
-	var preloadingFullscreen = false;
-	var fullscreenReady = false;
-	var pluginProto = cr.plugins_.CJSAds.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-		this.isShowingBanner = false;
-		this.isShowingFullscreen = false;
-		this.triggerProduct = "";
-		this.socialService = null;
-		this.socialServiceAvailable = false;
-		this.storeServiceAvailable = (this.runtime.isCocoonJs && typeof CocoonJS["Store"]["nativeExtensionObjectAvailable"] !== "undefined");
-		this.storeManaged = (this.properties[0] !== 1);
-		this.storeSandboxed = (this.properties[1] !== 0);
-		this.onConsumePurchaseFailedTransactionId = "";
-		this.onConsumePurchaseCompleted = "";
-		var self = this;
-		if (this.runtime.isCocoonJs)
-		{
-			CocoonJS["App"]["onTextDialogFinished"].addEventListener(function(text) {
-				input_text = text;
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnKeyboardOK, self);
-			});
-			CocoonJS["App"]["onTextDialogCancelled"].addEventListener(function() {
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnKeyboardCancelled, self);
-			});
-			CocoonJS["Ad"]["onBannerShown"].addEventListener(function ()
-			{
-				self.isShowingBanner = true;
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnBannerShown, self);
-			});
-			CocoonJS["Ad"]["onBannerReady"].addEventListener(function ()
-			{
-				bannerReady = true;
-				if (!preloadingBanner)
-				{
-					CocoonJS["Ad"]["setBannerLayout"](bannerPosition);
-					CocoonJS["Ad"]["showBanner"]();
-				}
-			});
-			CocoonJS["Ad"]["onFullScreenShown"].addEventListener(function ()
-			{
-				self.isShowingFullscreen = true;
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnFullscreenShown, self);
-			});
-			CocoonJS["Ad"]["onFullScreenHidden"].addEventListener(function ()
-			{
-				self.isShowingFullscreen = false;
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnFullscreenHidden, self);
-			});
-			CocoonJS["Ad"]["onFullScreenReady"].addEventListener(function ()
-			{
-				fullscreenReady = true;
-				if (!preloadFullScreen)
-					CocoonJS["Ad"]["showFullScreen"]();
-			});
-			if (this.storeServiceAvailable)
-			{
-				CocoonJS["Store"]["onProductPurchaseCompleted"].addEventListener(function (purchase)
-				{
-					self.triggerProduct = purchase["productId"];
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnPurchaseComplete, self);
-					CocoonJS["Store"]["addPurchase"](purchase);
-					CocoonJS["Store"]["consumePurchase"](purchase["transactionId"], purchase["productId"]);
-					CocoonJS["Store"]["finishPurchase"](purchase["transactionId"]);
-				});
-				CocoonJS["Store"]["onConsumePurchaseFailed"].addEventListener(function(transactionId, errorMessage)
-				{
-					this.onConsumePurchaseFailedTransactionId = transactionId;
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.onConsumePurchaseFailed, self);
-				});
-				CocoonJS["Store"]["onConsumePurchaseCompleted"].addEventListener(function(transactionId)
-				{
-					this.onConsumePurchaseCompleted = transactionId;
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.onConsumePurchaseCompleted, self);
-				});
-				CocoonJS["Store"]["onProductPurchaseFailed"].addEventListener(function (productId, errorMsg)
-				{
-					self.triggerProduct = productId;
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnPurchaseFail, self);
-				});
-				CocoonJS["Store"]["onProductPurchaseStarted"].addEventListener(function (productinfo)
-				{
-					self.triggerProduct = productinfo["productId"];
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnPurchaseStart, self);
-				});
-				CocoonJS["Store"]["onProductsFetchStarted"].addEventListener(function ()
-				{
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.onProductsFetchStarted, self);
-				});
-				CocoonJS["Store"]["onProductsFetchFailed"].addEventListener(function ()
-				{
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.onProductsFetchFailed, self);
-				});
-				CocoonJS["Store"]["onProductsFetchCompleted"].addEventListener(function (products)
-				{
-					self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.onProductsFetchCompleted, self);
-				});
-				CocoonJS["Store"]["requestInitialization"]({
-					"managed": this.storeManaged,
-					"sandbox": this.storeSandboxed
-				});
-				CocoonJS["Store"]["start"]();
-			}
-			this.socialService = CocoonJS["SocialGaming"]["GameCenter"];
-			this.socialServiceAvailable = !!this.socialService["nativeExtensionObjectAvailable"];
-			this.socialService["onRequestLoginSucceed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCLoginSuccess, self);
-			});
-			this.socialService["onRequestLoginFailed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCLoginFail, self);
-			});
-			this.socialService["onLogout"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCLogout, self);
-			});
-			this.socialService["onRequestUserScoreSucceed"].addEventListener(function (userInfo) {
-				requested_score = userInfo["score"] || 0;
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCScoreReceived, self);
-			});
-			this.socialService["onRequestUserScoreFailed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCScoreUnavailable, self);
-			});
-			this.socialService["onSubmitUserScoreSucceed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCScoreSubmitSuccess, self);
-			});
-			this.socialService["onSubmitUserScoreFailed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCScoreSubmitFail, self);
-			});
-			this.socialService["onLeaderboardViewSucceed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCLeaderboardOpen, self);
-			});
-			this.socialService["onLeaderboardViewClosed"].addEventListener(function () {
-				self.runtime.trigger(cr.plugins_.CJSAds.prototype.cnds.OnGCLeaderboardClose, self);
-			});
-		}
-	};
-	function Cnds() {};
-	Cnds.prototype.IsShowingBanner = function ()
-	{
-		return this.isShowingBanner;
-	};
-	Cnds.prototype.IsCocoonJS = function ()
-	{
-		return this.runtime.isCocoonJs;
-	};
-	Cnds.prototype.OnBannerShown = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnFullscreenShown = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnFullscreenHidden = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsShowingFullscreen = function ()
-	{
-		return this.isShowingFullscreen;
-	};
-	Cnds.prototype.IsStoreAvailable = function ()
-	{
-		if (this.runtime.isCocoonJs)
-			return this.storeServiceAvailable && CocoonJS["Store"]["canPurchase"]();
-		else
-			return false;
-	};
-	Cnds.prototype.OnPurchaseStart = function (productid)
-	{
-		return this.triggerProduct === productid;
-	};
-	Cnds.prototype.OnPurchaseComplete = function (productid)
-	{
-		return this.triggerProduct === productid;
-	};
-	Cnds.prototype.OnPurchaseFail = function (productid)
-	{
-		return this.triggerProduct === productid;
-	};
-	Cnds.prototype.onProductsFetchStarted = function(){
-		return true;
-	}
-	Cnds.prototype.onConsumePurchaseFailed = function(){
-		return true;
-	}
-	Cnds.prototype.onProductsFetchCompleted = function(){
-		return true;
-	}
-	Cnds.prototype.onProductsFetchFailed = function(){
-		return true;
-	}
-	Cnds.prototype.IsProductPurchased = function (productid)
-	{
-		if (this.runtime.isCocoonJs)
-			return CocoonJS["Store"]["isProductPurchased"](productid);
-		else
-			return false;
-	};
-	Cnds.prototype.OnKeyboardCancelled = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnKeyboardOK = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsGCAvailable = function ()
-	{
-		return this.socialServiceAvailable;
-	};
-	Cnds.prototype.IsGCLoggedIn = function ()
-	{
-		if (!this.socialServiceAvailable)
-			return false;
-		return this.socialService["isLoggedIn"]();
-	};
-	Cnds.prototype.OnGCLoginSuccess = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCLoginFail = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCLogout = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCScoreReceived = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCScoreUnavailable = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCScoreSubmitSuccess = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCScoreSubmitFail = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCLeaderboardOpen = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnGCLeaderboardClose = function ()
-	{
-		return true;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.ShowBanner = function (layout_)
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		bannerPosition = (layout_ === 0 ? CocoonJS["Ad"]["BannerLayout"]["TOP_CENTER"] : CocoonJS["Ad"]["BannerLayout"]["BOTTOM_CENTER"]);
-		preloadingBanner = false;
-		if (bannerReady)
-		{
-			CocoonJS["Ad"]["setBannerLayout"](bannerPosition);
-			CocoonJS["Ad"]["showBanner"]();
-		}
-		else
-		{
-			CocoonJS["Ad"]["preloadBanner"]();
-		}
-	};
-	Acts.prototype.ShowFullscreen = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		preloadingFullscreen = false;
-		if (fullscreenReady)
-			CocoonJS["Ad"]["showFullScreen"]();
-		else
-			CocoonJS["Ad"]["preloadFullScreen"]();
-	};
-	Acts.prototype.HideBanner = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Ad"]["hideBanner"]();
-		this.isShowingBanner = false;
-	};
-	Acts.prototype.PreloadBanner = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		preloadingBanner = true;
-		CocoonJS["Ad"]["preloadBanner"]();
-	};
-	Acts.prototype.PreloadFullscreen = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		preloadingFullscreen = true;
-		CocoonJS["Ad"]["preloadFullScreen"]();
-	};
-	Acts.prototype.RefreshBanner = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Ad"]["refreshBanner"]();
-	};
-	Acts.prototype.RefreshFullscreen = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Ad"]["refreshFullScreen"]();
-	};
-	Acts.prototype.Purchase = function (productid)
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Store"]["purchaseProduct"](productid);
-	};
-	Acts.prototype.fetchProductsFromStore = function (products)
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Store"]["fetchProductsFromStore"](products.split(","));
-	};
-	Acts.prototype.restorePurchases = function ()
-	{
-		if (this.runtime.isCocoonJs)
-			return CocoonJS["Store"]["restorePurchases"]();
-	};
-	Acts.prototype.PurchasePreview = function (productid)
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Store"]["purchaseProductModalWithPreview"](productid);
-	};
-	Acts.prototype.RestorePurchases = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		CocoonJS["Store"]["restorePurchases"]();
-	};
-	Acts.prototype.PromptKeyboard = function (title_, message_, initial_, type_, canceltext_, oktext_)
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		var typestr = ["text", "num", "phone", "email", "url"][type_];
-		CocoonJS["App"]["showTextDialog"](title_, message_, initial_, typestr, canceltext_, oktext_);
-	};
-	Acts.prototype.UpdateProductsList = function ()
-	{
-		if (!this.runtime.isCocoonJs)
-			return;
-		if (!CocoonJS["Store"]["canPurchase"]())
-			return;
-		products_list = CocoonJS["Store"]["getProducts"]();
-	};
-	Acts.prototype.GCLogin = function ()
-	{
-		if (!this.socialServiceAvailable || this.socialService["isLoggedIn"]())
-			return;
-		this.socialService["requestLogin"]();
-	};
-	Acts.prototype.GCLogout = function ()
-	{
-		if (!this.socialServiceAvailable || !this.socialService["isLoggedIn"]())
-			return;
-		this.socialService["requestLogout"]();
-	};
-	Acts.prototype.GCSubmitScore = function (score_, leaderboard_)
-	{
-		if (!this.socialServiceAvailable || !this.socialService["isLoggedIn"]())
-			return;
-		this.socialService["submitUserScore"](score_, leaderboard_);
-	};
-	Acts.prototype.GCRequestScore = function (leaderboard_)
-	{
-		if (!this.socialServiceAvailable || !this.socialService["isLoggedIn"]())
-			return;
-		this.socialService["requestUserScore"](leaderboard_);
-	};
-	Acts.prototype.GCOpenLeaderboard = function (leaderboard_)
-	{
-		if (!this.socialServiceAvailable || !this.socialService["isLoggedIn"]())
-			return;
-		this.socialService["showLeaderboardView"](leaderboard_);
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.InputText = function (ret)
-	{
-		ret.set_string(input_text);
-	};
-	Exps.prototype.ProductCount = function (ret)
-	{
-		ret.set_int(products_list.length);
-	};
-	Exps.prototype.ProductDescription = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["description"]);
-	};
-	Exps.prototype.ProductLocalizedPrice = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["localizedPrice"]);
-	};
-	Exps.prototype.ProductPrice = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["price"]);
-	};
-	Exps.prototype.ProductAlias = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["productAlias"]);
-	};
-	Exps.prototype.ProductID = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["productId"]);
-	};
-	Exps.prototype.ProductTitle = function (ret, index)
-	{
-		index = Math.floor(index);
-		if (index < 0 || index >= products_list.length)
-		{
-			ret.set_string("");
-			return;
-		}
-		ret.set_string(products_list[index]["title"]);
-	};
-	Exps.prototype.GameCenterScore = function (ret)
-	{
-		ret.set_float(requested_score);
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
 cr.plugins_.Dictionary = function(runtime)
 {
 	this.runtime = runtime;
@@ -19183,1127 +18044,6 @@ cr.plugins_.Dictionary = function(runtime)
 			"c2dictionary": true,
 			"data": this.dictionary
 		}));
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
-cr.plugins_.FBComplete = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.FBComplete.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	var fbGameFriendsName = new Array();    var fbGameFriendsID = new Array(); var fbGameFriendsScore = new Array(); var fbRank = new Array();var fbfriendlength = 0;
-	var basic_done = 0;
-	var email = "";
-	var birthday = "";
-	var age_min = "";
-	var age_max = "";
-	var current_friend_rank = "";
-	var current_friend_id = "";
-	var current_friend_name = "";
-	var current_friend_score = "";
-	var fbRuntime = null;
-	var fbpicture = "";
-	var fbInst = null;
-	var fbScore = 0;
-	var pay_orderid = "";
-	  var pay_orderstatus = "";
-	  var pay_errorcode = "";
-	  var pay_errormessage = "";
-	var scoreerror = "";
-	var storypostid = "";
-	var currentstatus = "wishywashy";
-        var fblogoutcheck =  true;
-	var gender = "";
-	var locale = "";
-	var link = "";
-	var username = "";
-	var thirdpartyid = "";
-	var fullnamename = "";
-	var firstname = "";
-	var lastname = "";
-	var fbStatus = "unknown";
-	var fbUserID = "";
-	var UserAccessToken = "";
-	var Auth_Response_Status = "";
-	var Init_App_ID = "";
-	var Init_Allow_Cookies = false;
-	var Init_Allow_Logging = false;
-	var Init_Fetch_Fresh_Status = false;
-	var Init_Parse_Xfbml = false;
-	var Init_Authresponse_Init = false;
-	var Init_Allow_Frictionless_Requests = false;
-	var UserAccessTokenExpiresIn = 0;
-	var UserSignedRequest = "";
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-				Init_App_ID = this.properties[0];
-				if(this.properties[1] == "Yes"){Init_Allow_Cookies = true;}
-		                if(this.properties[2] == "Yes"){Init_Allow_Logging = true;}
-		                if(this.properties[3] == "Yes"){Init_Fetch_Fresh_Status = true;}
-		                if(this.properties[4] == "Yes"){Init_Parse_Xfbml = true;}
-		                if(this.properties[5] == "Yes"){Init_Authresponse_Init = true;}
-		                if(this.properties[6] == "Yes"){Init_Allow_Frictionless_Requests = true;}
-				 fbRuntime = this.runtime;
-		                 fbInst = this;
-		window.fbAsyncInit = function() {
-    		var pname = location.pathname;
-		if (pname.substr(pname.length - 1) !== '/'){pname = pname.substr(0, pname.lastIndexOf('/') + 1);}
-    FB.init({
-      "appId"      : Init_App_ID, // App ID from the App Dashboard
-      "channelUrl" : '//' + location.hostname + pname + 'channel.html', // Channel File for x-domain communication
-      "status"     : Init_Fetch_Fresh_Status, // check the login status upon init?
-      "cookie"     : Init_Allow_Cookies, // set sessions cookies to allow your server to access the session?
-      "logging"    : Init_Allow_Logging,
-      "authResponse" :Init_Authresponse_Init,
-      "frictionlessRequests" :Init_Allow_Frictionless_Requests,
-      "hideFlashCallback" : null,
-      "xfbml"      : Init_Parse_Xfbml  // parse XFBML tags on this page?
-    });
-    FB.getLoginStatus(function(response) {
-     if (response["status"] == 'connected') {
-      fbStatus = "Validated User";
-       fbUserID = response["authResponse"]["userID"];
-       UserAccessToken = response["authResponse"]["accessToken"];
-       UserAccessTokenExpiresIn = response["authResponse"]["expiresIn"];
-       UserSignedRequest = response["authResponse"]["signedRequest"];
-       if(currentstatus != "Validated User"){currentstatus = "Validated User";fblogoutcheck = true;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnLoggedIn, fbInst);}
-      fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnAPILoaded, fbInst);
-      }
-      else if (response["status"] == 'not_authorized') {
-       fbStatus = "Logged In No Install";
-       fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Logged In No Install"){currentstatus = "Logged In No Install";fblogoutcheck = false;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnNotInstalled, fbInst);}
-       fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnAPILoaded, fbInst);
-      } else if (response["status"] == 'unknown') {
-	fbStatus = "Not On Facebook";
-	fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Not On Facebook"){currentstatus = "Not On Facebook";fblogoutcheck = false;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFacebookOut, fbInst);}
-       fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnAPILoaded, fbInst);
-  }
- }, true);
-  };
-  (function(d, debug){
-     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-     if (d.getElementById(id)) {return;}
-     js = d.createElement('script'); js.id = id; js.async = true;
-     js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
-     ref.parentNode.insertBefore(js, ref);
-   }(document, /*debug*/ false));
-	};
-	instanceProto.draw = function(ctx)
-	{
-	};
-	instanceProto.drawGL = function (glw)
-	{
-	};
-	function Cnds() {};
-	Cnds.prototype.OnLoggedIn = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnNotInstalled = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnFacebookOut = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnAPILoaded = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnInfoReady = function ()
-	{
-		basic_done = 0;
-		return true;
-	};
-	Cnds.prototype.IsLoggedIn = function ()
-	{
-		return fblogoutcheck;
-	};
-	Cnds.prototype.OnFeedSuccess = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnFeedFailed = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnPaySuccess = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnPayFailure = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnHiscore = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnPhotoFail = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnPhotoSuccess = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnUserHiscoreSubmit = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnUserHiscoreReceive = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnMessageSubmit = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnMessageFail = function ()
-	{
-		return true;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.UserLogin = function (response_Type, redirect_url,login_permissions,login_state,login_display)
-	{
-	 var oauth_url = 'https://www.facebook.com/dialog/oauth/';
-            oauth_url += '?client_id='+Init_App_ID;
-            oauth_url += '&redirect_uri=' + encodeURIComponent(redirect_url);
-            oauth_url += '&scope='+login_permissions;
-	    oauth_url += '&state='+login_state;
-	    if(login_display == 1){oauth_url += '&display=iframe';}
-	    else if(login_display == 2){oauth_url += '&display=page';}
-	    else if(login_display == 3){oauth_url += '&display=popup';}
-	    else if(login_display == 4){oauth_url += '&display=touch';}
-	    else if(login_display == 0){}
-	    if(response_Type == 0){oauth_url += '&response_type=token';}
-	    else if(response_Type == 1){oauth_url += '&response_type=code';}
-            window.top.location = oauth_url;
-	};
-	Acts.prototype.UpdateStatus = function ()
-	{
-		var fbRuntimea = this.runtime;
-		                var fbInsta = this;
-		FB.getLoginStatus(function(response) {
-     if (response["status"] == 'connected') {
-      fbStatus = "Validated User";
-       fbUserID = response["authResponse"]["userID"];
-       UserAccessToken = response["authResponse"]["accessToken"];
-       UserAccessTokenExpiresIn = response["authResponse"]["expiresIn"];
-       UserSignedRequest = response["authResponse"]["signedRequest"];
-       if(currentstatus != "Validated User"){currentstatus = "Validated User";fblogoutcheck = true;fbRuntimea.trigger(cr.plugins_.FBComplete.prototype.cnds.OnLoggedIn, fbInsta);}
-      } else if (response["status"] == 'not_authorized') {
-       fbStatus = "Logged In No Install";
-       fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Logged In No Install"){currentstatus = "Logged In No Install";fblogoutcheck = false;fbRuntimea.trigger(cr.plugins_.FBComplete.prototype.cnds.OnNotInstalled, fbInsta);}
-      } else if (response["status"] == 'unknown') {
-	fbStatus = "Not On Facebook";
-	fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Not On Facebook"){currentstatus = "Not On Facebook";fblogoutcheck = false;fbRuntimea.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFacebookOut, fbInsta);}
-           }
-          }, true);
-	};
-	Acts.prototype.UpdateBasicUser = function ()
-	{
-	 FB.api('/me', function(response) {
-		if(response["birthday"]){birthday = response["birthday"];}
-		else if(!response["birthday"]){birthday ="permissions";}// return our value
-		if(response["email"]){email = response["email"];}
-		else if(!response["email"]){email ="permissions";}// return our value
-		if(response["name"]){fullnamename = response["name"];}
-		else if(!response["name"]){fullnamename ="permissions";}// return our value
-		if(response["first_name"]){firstname = response["first_name"];}
-		else if(!response["first_name"]){firstname ="permissions";}// return our value
-		if(response["last_name"]){lastname = response["last_name"];}
-		else if(!response["last_name"]){lastname ="permissions";}// return our value
-		if(response["gender"]){gender = response["gender"];}
-		else if(!response["gender"]){gender ="permissions";}// return our value
-		if(response["locale"]){locale = response["locale"];}
-		else if(!response["locale"]){locale ="permissions";}// return our value
-		if(response["link"]){link = response["link"];}
-		else if(!response["link"]){link ="permissions";}// return our value
-		if(response["username"]){username = response["username"];}
-		else if(!response["username"]){username ="permissions";}// return our value
-		if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		else{basic_done ++;}
-		});
-	 FB.api('/me?fields=third_party_id&access_token='+UserAccessToken, function (userData) {
-                if(userData["third_party_id"]){
-			thirdpartyid = userData["third_party_id"];
-			if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		        else{basic_done ++;}
-			}
-		else if(!userData["third_party_id"]){
-			thirdpartyid ="permissions";
-			if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		        else{basic_done ++;}
-			}// return our value
-                });
-	 FB.api('/me?fields=picture&redirect=false&access_token='+UserAccessToken, function (userData) {
-                if(userData["picture"]){
-			fbpicture = userData["picture"]["data"]["url"];
-			if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		        else{basic_done ++;}
-			}
-		else if(!userData["picture"]){
-			fbpicture ="permissions";
-			if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		        else{basic_done ++;}
-			}// return our value
-                });
-	 FB.api('/me?fields=age_range&access_token='+UserAccessToken, function (userData) {
-                if(userData["age_range"]){if(userData["age_range"]["min"]){age_min = userData["age_range"]["min"];}else{age_min = "none"}if(userData["age_range"]["max"]){age_max = userData["age_range"]["max"]; }else{age_max = "none"}
-		if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		else{basic_done ++;}
-		}
-		else if(!userData["age_range"]){
-			age_min ="permissions";
-			if(basic_done == 3){fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);}
-		        else{basic_done ++;}
-			}// return our value
-                });
-	};
-	 Acts.prototype.FacebookLogout = function ()
-	{
-	 FB.logout(function(response) {
-           fblogoutcheck = false;
-          });
-	};
-	Acts.prototype.DeleteApp = function ()
-	{
-	 FB.api('/me/permissions?access_token='+UserAccessToken, 'delete', function(response) {
-          });
-	 fblogoutcheck = false;
-	};
-	Acts.prototype.PostStory = function (sfrom,sto,story,ssource,picture,sname,scaption,sdescription,slink,sref)
-	{
-		var fbRuntimea = this.runtime;
-		                var fbInsta = this;
-	 var feedstring = 'me/feed?';
-	 if(sfrom != ""){feedstring += 'from=' + parseInt(sfrom);}else{feedstring += 'from=' + fbUserID;}
-	 if(sto != ""){feedstring += '&to=' + parseInt(sto);}
-	 if(story != ""){feedstring += '&message=' + story;}
-	 if(ssource != ""){feedstring += '&source=' + ssource;}
-	 if(picture != ""){feedstring += '&picture=' + picture;}
-	 if(sname != ""){feedstring += '&name=' + sname;}
-	 if(scaption != ""){feedstring += '&caption=' + scaption;}
-	 if(sdescription != ""){feedstring += '&description=' + sdescription;}
-	 if(slink != ""){feedstring += '&link=' + slink;}
-	 if(sref != ""){feedstring += '&ref=' + sref;}
-	FB.api(feedstring, 'post', {}, function(response) {
-  if (!response || response.error) {
-    storypostid =response["error"]["message"];
-    fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFeedFailed, fbInst);
-  } else {
-    storypostid =response["id"];
-    fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFeedSuccess, fbInst);
-  }
-});
-	};
-	Acts.prototype.PublishScore = function (score_)
-	{
-		FB.api('/me/scores?access_token='+UserAccessToken+'&score='+score_, 'post', {}, function(response) {
-                 if (!response || response.error){
-			scoreerror = "Permissions";
-		 }
-		 else{scoreerror = "Success";
-		 fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnUserHiscoreSubmit, fbInst);
-		 }
-                });
-	};
-	Acts.prototype.RequestUserHiscore = function (appname)
-	{
-		FB.api('/me/scores?access_token='+UserAccessToken, 'GET', {}, function(response) {
-			fbScore = 0;
-			var arr = response["data"];
-			if (!arr)
-			{
-				scoreerror = "Request for user hi-score failed";
-				return;
-			}
-			var i, len;
-			for (i = 0, len = arr.length; i < len; i++)
-			{
-				if (arr[i]["application"]["namespace"] == appname && arr[i]["score"] > fbScore)
-					fbScore = arr[i]["score"];fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnUserHiscoreReceive, fbInst);
-			}
-			if (!response || response.error) {
-			  scoreerror = "Permissions"
-		    } else {
-			  scoreerror = "Success";
-		    }
-		});
-	};
-	Acts.prototype.RequestStory = function (sfrom,sto,ssource,pictures,sname,scaption,sdescription,slink,sref)
-	{
-		FB.ui({
-				"method": "feed",
-				"from": parseInt(sfrom),
-				"to": parseInt(sto),
-				"source": ssource,
-				"picture": pictures,
-				"name": sname,
-				"caption": scaption,
-				"description": sdescription,
-				"link": slink,
-				"ref": sref
-			  }, function(response) {
-				var fbRuntimeb = this.runtime;
-		                var fbInstb = this;
-				if (!response || response.error) {
-                                  storypostid =response["error"]["message"];
-				  fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFeedFailed, fbInst);
-                                } else {
-                                  storypostid =response["post_id"];
-				  fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFeedSuccess, fbInst);
-                                }
-			});
-	};
-	Acts.prototype.InvokePay = function (itemids)
-	{
-		FB.ui({"method": 'pay', "action": 'buy_item', "order_info": {'item_id': itemids}, "dev_purchase_params": {'oscif': true}
-			  }, function(data) {
-				if (data['order_id']) {
-               pay_orderid = data['order_id'];
-	       pay_orderstatus = data['status'];
-	       fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnPaySuccess, fbInst);
-        } else if (data['error_code']) {
-          pay_errorcode = data['error_code'];
-          pay_errormessage = data['error_message'];
-	  fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnPayFailure, fbInst);
-        } else {
-          pay_errormessage = "Payment failed";
-	  fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnPayFailure, fbInst);
-        }
-			});
-	};
-	Acts.prototype.FriendsPlaying = function (n)
-	{
-		FB.api('/' + Init_App_ID + '/scores', 'GET', {}, function(response) {
-			var arr = response["data"];
-			if (!arr)
-			{
-				console.error("Hi-scores request failed: " + response);
-				return;
-			}
-			arr.sort(function(a, b) {
-				return b["score"] - a["score"];
-			});
-			var i = 0, len = Math.min(arr.length, n);
-			fbfriendlength = arr.length;
-			for ( ; i < len; i++)
-			{
-				fbGameFriendsScore[i] = arr[i]["score"];
-				fbGameFriendsName[i] = arr[i]["user"]["name"];
-				fbGameFriendsID[i] = arr[i]["user"]["id"];
-				fbRank[i] = i + 1;
-			}
-			fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnHiscore, fbInst);
-			if (!response || response.error) {
-			  fbGameFriendsScore[i] = "failed";
-				fbGameFriendsName[i] = "failed";
-				fbGameFriendsID[i] = "failed";
-				fbRank[i] = "failed";
-		    } else {
-			  fbGameFriendsScore[i] = "failed";
-				fbGameFriendsName[i] = "failed";
-				fbGameFriendsID[i] = "failed";
-				fbRank[i] = "failed";
-		    }
-		});
-	};
-	Acts.prototype.GetCurrentGameFriend = function (friend_id)
-	{
-	 friend_id = friend_id - 1;
-	current_friend_rank = fbRank[friend_id];
-	current_friend_id = fbGameFriendsID[friend_id];
-	current_friend_name = fbGameFriendsName[friend_id];
-	current_friend_score = fbGameFriendsScore[friend_id];
-	};
-	Acts.prototype.UserLoginPopUp = function (permissions)
-	{
-	FB.login(function(response) {
-         if (response.authResponse) {
-          FB.api('/me', function(response) {
-		if(response["birthday"]){birthday = response["birthday"];}
-		else if(!response["birthday"]){birthday ="permissions";}// return our value
-		if(response["email"]){email = response["email"];}
-		else if(!response["email"]){email ="permissions";}// return our value
-		if(response["name"]){fullnamename = response["name"];}
-		else if(!response["name"]){fullnamename ="permissions";}// return our value
-		if(response["first_name"]){firstname = response["first_name"];}
-		else if(!response["first_name"]){firstname ="permissions";}// return our value
-		if(response["last_name"]){lastname = response["last_name"];}
-		else if(!response["last_name"]){lastname ="permissions";}// return our value
-		if(response["gender"]){gender = response["gender"];}
-		else if(!response["gender"]){gender ="permissions";}// return our value
-		if(response["locale"]){locale = response["locale"];}
-		else if(!response["locale"]){locale ="permissions";}// return our value
-		if(response["link"]){link = response["link"];}
-		else if(!response["link"]){link ="permissions";}// return our value
-		if(response["username"]){username = response["username"];}
-		else if(!response["username"]){username ="permissions";}// return our value
-		});
-	 FB.api('/me?fields=third_party_id&access_token='+UserAccessToken, function (userData) {
-                if(userData["third_party_id"]){thirdpartyid = userData["third_party_id"];}
-		else if(!userData["third_party_id"]){thirdpartyid ="permissions";}// return our value
-                });
-	 FB.api('/me?fields=picture&redirect=false&access_token='+UserAccessToken, function (userData) {
-                if(userData["picture"]){fbpicture = userData["picture"]["data"]["url"];}
-		else if(!userData["picture"]){fbpicture ="permissions";}// return our value
-                });
-	 FB.api('/me?fields=age_range&access_token='+UserAccessToken, function (userData) {
-                if(userData["age_range"]){if(userData["age_range"]["min"]){age_min = userData["age_range"]["min"];}else{age_min = "none"}if(userData["age_range"]["max"]){age_max = userData["age_range"]["max"]; }else{age_max = "none"}}
-		else if(!userData["age_range"]){age_min ="permissions";}// return our value
-                });
-	 fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnInfoReady, fbInst);
-   } else {
-     FB.getLoginStatus(function(response) {
-     if (response["status"] == 'connected') {
-      fbStatus = "Validated User";
-       fbUserID = response["authResponse"]["userID"];
-       UserAccessToken = response["authResponse"]["accessToken"];
-       UserAccessTokenExpiresIn = response["authResponse"]["expiresIn"];
-       UserSignedRequest = response["authResponse"]["signedRequest"];
-       if(currentstatus != "Validated User"){currentstatus = "Validated User";fblogoutcheck = true;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnLoggedIn, fbInst);}
-      } else if (response["status"] == 'not_authorized') {
-       fbStatus = "Logged In No Install";
-       fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Logged In No Install"){currentstatus = "Logged In No Install";fblogoutcheck = false;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnNotInstalled, fbInst);}
-      } else if (response["status"] == 'unknown') {
-	fbStatus = "Not On Facebook";
-	fbUserID = "";
-       UserAccessToken = "";
-       UserAccessTokenExpiresIn = 0;
-       UserSignedRequest = "";
-       if(currentstatus != "Not On Facebook"){currentstatus = "Not On Facebook";fblogoutcheck = false;fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnFacebookOut, fbInst);}
-           }
-          }, true);
-   }
- }, {scope: permissions});
-	};
-	Acts.prototype.UploadPhoto = function (image, descrip)
-	{
-	 var imgURL = image;
-    FB.api('/me/photos', 'post', {
-        message:descrip,
-        url:imgURL
-    }, function(response){
-        if (!response || response.error) {
-            fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnPhotoFail, fbInst);
-        } else {
-            fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnPhotoSuccess, fbInst);
-        }
-    });
-	};
-	Acts.prototype.SendMessage = function (idss, pic, desc, links, name)
-	{
-		var fark = '';
-		fark = idss;
-	 FB.ui({
-          "method": 'send',
-          'name': name,
-          'link': links,
-          'description': desc,
-	  'picture': pic,
-	  'to': fark,
-	  }, function(response) {
-				if (response) {
-                                 fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnMessageSubmit, fbInst);
-                                } else {
-                                 fbRuntime.trigger(cr.plugins_.FBComplete.prototype.cnds.OnMessageFail, fbInst);
-                                }
-                           });
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.UserID = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(fbUserID);				// return our value
-	};
-	Exps.prototype.UserLoginStatus = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(fbStatus);				// return our value
-	};
-	Exps.prototype.UserAccessTokenExpiresIn = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_int(UserAccessTokenExpiresIn);				// return our value
-	};
-	Exps.prototype.UserAccessToken = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(UserAccessToken);				// return our value
-	};
-	Exps.prototype.UserSignedRequest = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(UserSignedRequest);				// return our value
-	};
-	Exps.prototype.UserFullName = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(fullnamename);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserFirstName = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(firstname);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserLastName = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(lastname);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.ThirdPartyID = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(thirdpartyid);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserGender = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(gender);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserLocale = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(locale);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserLink = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(link);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserUserName = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(username);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.StoryFeedPostID = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(storypostid);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.UserPicture = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(fbpicture);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.ScoreError = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
-	{
-		ret.set_string(scoreerror);// for ef_return_any, accepts either a number or string
-	};
-	Exps.prototype.Score = function (ret)
-	{
-		ret.set_int(fbScore);
-	};
-	Exps.prototype.PayStatus = function (ret)
-	{
-		ret.set_string(pay_orderstatus);
-	};
-	Exps.prototype.PayID = function (ret)
-	{
-		ret.set_string(pay_orderid);
-	};
-	Exps.prototype.PayErrorCode = function (ret)
-	{
-		ret.set_string(pay_errorcode);
-	};
-	Exps.prototype.PayErrorMessage = function (ret)
-	{
-		ret.set_string(pay_errormessage);
-	};
-	Exps.prototype.FriendsScore = function (ret)
-	{
-		ret.set_string(current_friend_score);
-	};
-	Exps.prototype.FriendsName = function (ret)
-	{
-		ret.set_string(current_friend_name);
-	};
-	Exps.prototype.FriendsID = function (ret)
-	{
-		ret.set_string(current_friend_id);
-	};
-	Exps.prototype.FriendsRank = function (ret)
-	{
-		ret.set_string(current_friend_rank);
-	};
-	Exps.prototype.FriendsLength = function (ret)
-	{
-		ret.set_int(fbfriendlength);
-	};
-	Exps.prototype.MinAge = function (ret)
-	{
-		ret.set_string(age_min);
-	};
-	Exps.prototype.MaxAge = function (ret)
-	{
-		ret.set_string(age_max);
-	};
-	Exps.prototype.Email = function (ret)
-	{
-		ret.set_string(email);
-	};
-	Exps.prototype.Birthday = function (ret)
-	{
-		ret.set_string(birthday);
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
-cr.plugins_.Facebook2 = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.Facebook2.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	var oauth_url = 'https://www.facebook.com/dialog/oauth/';
-	var redirect_url = "";
-	var fbAppID = "";
-	var fbAppSecret = "";
-	var fbReady = false;
-	var fbLoggedIn = false;
-	var fbUserID = "";
-	var fbFullName = "";
-	var fbFirstName = "";
-	var fbLastName = "";
-	var fbBirthDay = "";
-	var fbGender = "";
-	var fbLocale = "";
-	var fbEmail = "";
-	var fbAccessToken = "";
-	var fbStatus = "";
-	var fbRuntime = null;
-	var fbInst = null;
-	var fbScore = 0;
-	var fbHiscoreName = "";
-	var fbHiscoreUserID = 0;
-	var fbRank = 0;
-	var fbCanPublishStream = false;
-	var fbCanPublishAction = false;
-	var fbCanPublishEmail = false;
-	var fbCanPublishBirthday = false;
-	var fbPerms = "";
-	function onFBLogin()
-	{
-		if (!fbLoggedIn)
-		{
-			fbLoggedIn = true;
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnLogIn, fbInst);
-			FB.api('/me', function(response) {
-				                        /*Basic Permissions needed*/
-							fbFullName = response["name"];
-							fbFirstName = response["first_name"];
-							fbLastName = response["last_name"];
-							fbLocale   = response["locale"];
-							fbGender = response["gender"];
-							/*Requires Email Permission*/
-							fbEmail = response["email"];
-							/*Requires Birthday permission*/
-							fbBirthDay = response["birthday"];
-							fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnNameAvailable, fbInst);
-						});
-		}
-	};
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-		if (this.runtime.isDomFree)
-		{
-			cr.logexport("[Construct 2] Facebook plugin not supported on this platform - the object will not be created");
-			return;
-		}
-		fbAppID = this.properties[0];
-		fbAppSecret = this.properties[1];
-		fbRuntime = this.runtime;
-		fbInst = this;
-		window.fbAsyncInit = function() {
-			var channelfile = '//' + location.hostname;
-			var pname = location.pathname;
-			if (pname.substr(pname.length - 1) !== '/')
-				pname = pname.substr(0, pname.lastIndexOf('/') + 1);
-			FB.init({
-			  "appId"      : fbAppID,
-			  "channelURL" : '//' + location.hostname + pname + 'channel.html',
-			  "status"     : true,
-			  "cookie"     : true,
-			  "oauth"      : true,
-			  "xfbml"      : false
-			});
-			fbReady = true;
-			FB.Event.subscribe('auth.login', function(response) {
-				fbStatus = response["status"];
-				fbUserID = response["authResponse"]["userID"];
-				fbAccessToken = response["authResponse"]["accessToken"];
-;
-				onFBLogin();
-			});
-			FB.Event.subscribe('auth.logout', function(response) {
-				if (fbLoggedIn)
-				{
-					fbLoggedIn = false;
-					fbFullName = "";
-					fbFirstName = "";
-					fbLastName = "";
-					fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnLogOut, fbInst);
-				}
-			});
-			FB.getLoginStatus(function(response) {
-				if(response["status"])
-				{
-				fbStatus = response["status"];
-				}
-				if (response["authResponse"])
-				{
-					fbStatus = response["status"];
-					fbUserID = response["authResponse"]["userID"];
-					fbAccessToken = response["authResponse"]["accessToken"];
-;
-					onFBLogin();
-				}
-			});
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnReady, fbInst);
-		};
-		if (fbAppID.length)
-		{
-			(function(d){
-				var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
-				js = d.createElement('script'); js.id = id; js.async = true;
-				js.src = "//connect.facebook.net/en_US/all.js";
-				d.getElementsByTagName('head')[0].appendChild(js);
-			}(document));
-		}
-		else
-;
-	};
-	instanceProto.onLayoutChange = function ()
-	{
-		if (this.runtime.isDomFree)
-			return;
-		if (fbLoggedIn)
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnLogIn, fbInst);
-		if (fbFullName.length)
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnNameAvailable, fbInst);
-	};
-	function Cnds() {};
-	Cnds.prototype.IsReady = function ()
-	{
-		return fbReady;
-	};
-	Cnds.prototype.OnReady = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsLoggedIn = function ()
-	{
-		return fbLoggedIn;
-	};
-	Cnds.prototype.OnLogIn = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnLogOut = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnNameAvailable = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnUserTopScoreAvailable = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnHiscore = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnScoreSubmitted = function ()
-	{
-		return true;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.FBRedirect = function (red_secure, red_name,red_perm)
-	{
-		if (this.runtime.isDomFree || !fbReady)
-			return;
-		redirect_url = red_secure + '://apps.facebook.com/'+red_name+'/';
-		oauth_url += '?client_id='  + fbAppID;
-                oauth_url += '&redirect_uri=' + encodeURIComponent(redirect_url);
-                oauth_url += '&scope='+	red_perm;
-		window.top.location = oauth_url;
-	};
-	Acts.prototype.LogIn = function (perm_stream, perm_action, perm_email, perm_bday)
-	{
-		if (this.runtime.isDomFree || !fbReady)
-			return;
-		fbCanPublishStream = (perm_stream === 1);
-		fbCanPublishAction = (perm_action === 1);
-		fbCanPublishEmail  = (perm_email === 1);
-		fbCanPublishBirthday = (perm_bday === 1);
-		var perms = [];
-		if (fbCanPublishStream)
-			perms.push("publish_stream");
-		if (fbCanPublishAction)
-			perms.push("publish_actions");
-		if (fbCanPublishEmail)
-			perms.push("email");
-		if (fbCanPublishBirthday)
-			perms.push("user_birthday");
-		var newperms = perms.join();
-			fbPerms = newperms;
-			FB.login(function(response) {
-					if (response["authResponse"])
-						onFBLogin();
-				}, {scope: fbPerms});
-	};
-	Acts.prototype.LogOut = function ()
-	{
-		if (this.runtime.isDomFree)
-			return;
-		if (fbLoggedIn)
-			FB.logout(function(response) {});
-	};
-	Acts.prototype.PromptWallPost = function ()
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.ui({ "method": "feed" }, function(response) {
-				if (!response || response.error)
-					  console.error(response);
-			});
-	};
-	Acts.prototype.PromptToShareApp = function (name_, caption_, description_, picture_)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.ui({
-				"method": "feed",
-				"link": "http://apps.facebook.com/" + fbAppID + "/",
-				"picture": picture_,
-				"name": name_,
-				"caption": caption_,
-				"description": description_
-			  }, function(response) {
-				  if (!response || response.error)
-						  console.error(response);
-			});
-	};
-	Acts.prototype.PromptToShareLink = function (url_, name_, caption_, description_, picture_)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.ui({
-				"method": "feed",
-				"link": url_,
-				"picture": picture_,
-				"name": name_,
-				"caption": caption_,
-				"description": description_
-			  }, function(response) {
-					if (!response || response.error)
-						console.error(response);
-			});
-	};
-	Acts.prototype.PublishToWall = function (message_)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		var publish = {
-			"method": 'stream.publish',
-			"message": message_
-		};
-		FB.api('/me/feed', 'POST', publish, function(response) {
-				if (!response || response.error)
-					console.error(response);
-			});
-	};
-	Acts.prototype.PublishLink = function (message_, url_, name_, caption_, description_, picture_)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		var publish = {
-				"method": 'stream.publish',
-				"message": message_,
-				"link": url_,
-				"name": name_,
-				"caption": caption_,
-				"description": description_
-			};
-		if (picture_.length)
-			publish["picture"] = picture_;
-		FB.api('/me/feed', 'POST', publish, function(response) {
-				if (!response || response.error)
-					console.error(response);
-			});
-	};
-	Acts.prototype.PublishScore = function (score_)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.api('/' + fbUserID + '/scores', 'POST', { "score": Math.floor(score_), "access_token": fbAppID + "|" + fbAppSecret }, function(response) {
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnScoreSubmitted, fbInst);
-			if (!response || response.error)
-				console.error(response);
-	   });
-	};
-	Acts.prototype.RequestUserHiscore = function ()
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.api('/me/scores', 'GET', {}, function(response) {
-			fbScore = 0;
-			var arr = response["data"];
-			if (!arr)
-			{
-				console.error("Request for user hi-score failed: " + response);
-				return;
-			}
-			var i, len;
-			for (i = 0, len = arr.length; i < len; i++)
-			{
-				if (arr[i]["score"] > fbScore)
-					fbScore = arr[i]["score"];
-			}
-			fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnUserTopScoreAvailable, fbInst);
-			if (!response || response.error) {
-			  console.error(response);
-		    } else {
-;
-		    }
-		});
-	};
-	Acts.prototype.RequestHiscores = function (n)
-	{
-		if (this.runtime.isDomFree || !fbLoggedIn)
-			return;
-		FB.api('/' + fbAppID + '/scores', 'GET', {}, function(response) {
-			var arr = response["data"];
-			if (!arr)
-			{
-				console.error("Hi-scores request failed: " + response);
-				return;
-			}
-			arr.sort(function(a, b) {
-				return b["score"] - a["score"];
-			});
-			var i = 0, len = Math.min(arr.length, n);
-			for ( ; i < len; i++)
-			{
-				fbScore = arr[i]["score"];
-				fbHiscoreName = arr[i]["user"]["name"];
-				fbHiscoreUserID = arr[i]["user"]["id"];
-				fbRank = i + 1;
-				fbRuntime.trigger(cr.plugins_.Facebook2.prototype.cnds.OnHiscore, fbInst);
-			}
-			if (!response || response.error) {
-			  console.error(response);
-		    } else {
-;
-		    }
-		});
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.FullName = function (ret)
-	{
-		ret.set_string(fbFullName);
-	};
-	Exps.prototype.FirstName = function (ret)
-	{
-		ret.set_string(fbFirstName);
-	};
-	Exps.prototype.LastName = function (ret)
-	{
-		ret.set_string(fbLastName);
-	};
-	Exps.prototype.Score = function (ret)
-	{
-		ret.set_int(fbScore);
-	};
-	Exps.prototype.HiscoreName = function (ret)
-	{
-		ret.set_string(fbHiscoreName);
-	};
-	Exps.prototype.HiscoreUserID = function (ret)
-	{
-		ret.set_int(fbHiscoreUserID);
-	};
-	Exps.prototype.HiscoreRank = function (ret)
-	{
-		ret.set_int(fbRank);
-	};
-	Exps.prototype.UserID = function (ret)
-	{
-		ret.set_float(parseFloat(fbUserID));
-	};
-	Exps.prototype.BirthDay = function (ret)
-	{
-		ret.set_string(fbBirthDay);
-	};
-	Exps.prototype.Gender = function (ret)
-	{
-		ret.set_string(fbGender);
-	};
-	Exps.prototype.Locale = function (ret)
-	{
-		ret.set_string(fbLocale);
-	};
-	Exps.prototype.Email = function (ret)
-	{
-		ret.set_string(fbEmail);
-	};
-	Exps.prototype.AccessToken = function (ret)
-	{
-		ret.set_string(fbAccessToken);
-	};
-	Exps.prototype.Status = function (ret)
-	{
-		ret.set_string(fbStatus);
 	};
 	pluginProto.exps = new Exps();
 }());
@@ -20500,1049 +18240,6 @@ cr.plugins_.Function = function(runtime)
 		}
 		popFuncStack();
 		ret.set_any(fs.retVal);
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
-cr.plugins_.MagiCam = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var CMath = {};
-	CMath.lerp = function(a, b, x)
-	{
-		return a + (b - a) * x;
-	};
-	CMath.cubic = function(a, b, c, d, x)
-	{
-		return this.lerp(this.lerp(this.lerp(a, b, x), this.lerp(b, c, x), x), this.lerp(this.lerp(b, c, x), this.lerp(c, d, x), x), x);
-	}
-	CMath.clamp = function(x, min, max)
-	{
-		if (x < min)
-		{
-			return min;
-		}
-		else if (x > max)
-		{
-			return max;
-		}
-		return x;
-	};
-	function Transition(Type, Duration, Param1, Param2, Param3, Param4)
-	{
-		this.type = Type;
-		this.duration = Duration;
-		this.param1 = Param1;
-		this.param2 = Param2;
-		this.param3 = Param3;
-		this.param4 = Param4;
-		this.progress = 0;
-	}
-	function Camera(Name, X, Y, Scale, Global)
-	{
-		this.global = Global;
-		this.name = Name;
-		this.x = X;
-		this.y = Y;
-		this.scale = Scale;
-		this.following = false;
-		this.followedObjects = [];
-		this.followedObjectUIDs = [];
-		this.objectWeights = [];
-		this.followedObjectIPs = [];
-		this.followLag = 1;
-		this.zoomToContain = false;
-		this.zoomMarginH = 0;
-		this.zoomMarginV = 0;
-		this.zoomBoundU = -1;
-		this.zoomBoundL = -1;
-		this.transitions = [];
-		this.moveTransFinished = false;
-		this.zoomTransFinished = false;
-		this.isShaking = false;
-		this.shakeX = 0;
-		this.shakeY = 0;
-		this.shakeZoom = 0;
-		this.shakeTimer = 0;
-		this.shakeStrength = 0;
-		this.shakeMaxDeviation = 0;
-		this.shakeMaxZoomDeviation = 0;
-		this.shakeLength = 0;
-		this.shakeBuildTime = 0;
-		this.shakeDropTime = 0;
-	}
-	Camera.prototype.GetName = function()
-	{
-		return this.name;
-	};
-	Camera.prototype.GetX = function()
-	{
-		return this.x;
-	};
-	Camera.prototype.SetX = function(value)
-	{
-		this.x = value;
-	};
-	Camera.prototype.GetY = function()
-	{
-		return this.y;
-	};
-	Camera.prototype.SetY = function(value)
-	{
-		this.y = value;
-	};
-	Camera.prototype.GetShakeX = function()
-	{
-		return this.shakeX;
-	};
-	Camera.prototype.GetShakeY = function()
-	{
-		return this.shakeY;
-	};
-	Camera.prototype.SetFollowedObject = function(fObject)
-	{
-		this.followedObject = fObject;
-	};
-	Camera.prototype.ShakeCamera = function(dt)
-	{
-		if (this.isShaking)
-		{
-			this.shakeTimer += dt;
-			if (this.shakeTimer < this.shakeLength)
-			{
-				var shakeStrength = 0;
-				if (this.shakeTimer < this.shakeBuildTime)
-				{
-					shakeStrength = CMath.lerp(0, this.shakeStrength, this.shakeTimer / this.shakeBuildTime);
-				}
-				else
-				{
-					shakeStrength = this.shakeStrength;
-				}
-				if (this.shakeTimer > this.shakeDropTime)
-				{
-					shakeStrength = CMath.lerp(this.shakeStrength, 0, (this.shakeTimer - this.shakeDropTime) / (this.shakeLength - this.shakeDropTime));
-				}
-				var shakeAngle = Math.floor(Math.random() * 361) / 57.2958;
-				var shakeX = CMath.lerp(0, Math.cos(shakeAngle) * this.shakeMaxDeviation, shakeStrength);
-				var shakeY = CMath.lerp(0, Math.sin(shakeAngle) * this.shakeMaxDeviation, shakeStrength);
-				var shakeZoom = CMath.lerp(0, (Math.floor(Math.random() * 201 - 100) / 100) * this.shakeMaxZoomDeviation, shakeStrength);
-				this.shakeX = CMath.lerp(this.shakeX, shakeX, shakeStrength);
-				this.shakeY = CMath.lerp(this.shakeY, shakeY, shakeStrength);
-				this.shakeZoom = CMath.lerp(this.shakeZoom, shakeZoom, shakeStrength);
-			}
-			else
-			{
-				this.isShaking = false;
-				this.shakeX = 0;
-				this.shakeY = 0;
-				this.shakeZoom = 0;
-			}
-		}
-	}
-	Camera.prototype.ProcessTransitions = function(dt)
-	{
-		this.moveTransFinished = false;
-		this.zoomTransFinished = false;
-		var transition;
-		for (var i = 0; i < this.transitions.length; )
-		{
-			transition = this.transitions[i];
-			transition.progress = CMath.clamp(transition.progress + (1.0 / transition.duration * dt), 0.0, 1.0);
-			if (transition.type == "MOVE")
-			{
-				this.x = CMath.cubic(transition.param3, transition.param3, transition.param1, transition.param1, transition.progress);
-				this.y = CMath.cubic(transition.param4, transition.param4, transition.param2, transition.param2, transition.progress);
-			}
-			else if (transition.type == "SCALE")
-			{
-				this.scale = CMath.cubic(transition.param2, transition.param2, transition.param1, transition.param1, transition.progress);
-			}
-			if (transition.progress == 1)
-			{
-				if (transition.type == "MOVE")
-				{
-					this.moveTransFinished = true;
-				}
-				else if (transition.type == "SCALE")
-				{
-					this.zoomTransFinished = true;
-				}
-				this.transitions.splice(i, 1);
-			}
-			else
-			{
-				i++;
-			}
-		}
-	};
-	Camera.prototype.UpdateCameraTarget = function(dt, targetCamera)
-	{
-		for (var i = 0; i < this.transitions.length; i++)
-		{
-			var transition = this.transitions[i];
-			if (transition.type == "MOVE")
-			{
-				transition.param1 = targetCamera.GetX();
-				transition.param2 = targetCamera.GetY();
-			}
-			else if (transition.type == "SCALE")
-			{
-				transition.param1 = targetCamera.scale;
-			}
-		}
-	};
-	Camera.prototype.ProcessFollowing = function(dt, screenWidth, screenHeight, layout)
-	{
-		var followed = this.followedObjects;
-		var followedObjectIPs = this.followedObjectIPs;
-		if (this.following && followed.length > 0)
-		{
-			var tempX = 0, tempY = 0, tempScale = 0;
-			if (!this.zoomToContain)
-			{
-				var sumX = 0, sumY = 0, sumW = 0;
-				for (var i = 0; i < followed.length; i++)
-				{
-					sumX += followed[i].getImagePoint(followedObjectIPs[i], true) * this.objectWeights[i];
-					sumY += followed[i].getImagePoint(followedObjectIPs[i], false) * this.objectWeights[i];
-					sumW += this.objectWeights[i];
-				}
-				tempX = sumX / sumW;
-				tempY = sumY / sumW;
-			}
-			else
-			{
-				var minX = 0, maxX = 0, minY = 0, maxY = 0;
-				var minXChanged = false, maxXChanged = false, minYChanged = false, maxYChanged = false;
-				for (var i = 0; i < followed.length; i++)
-				{
-					var fObject = followed[i];
-					fObject.update_bbox();
-					if (minXChanged)
-					{
-						minX = Math.min(minX, fObject.bbox.left);
-					}
-					else
-					{
-						minX = fObject.bbox.left;
-						minXChanged = true;
-					}
-					if (maxXChanged)
-					{
-						maxX = Math.max(maxX, fObject.bbox.right);
-					}
-					else
-					{
-						maxX = fObject.bbox.right;
-						maxXChanged = true;
-					}
-					if (minYChanged)
-					{
-						minY = Math.min(minY, fObject.bbox.top);
-					}
-					else
-					{
-						minY = fObject.bbox.top;
-						minYChanged = true;
-					}
-					if (maxYChanged)
-					{
-						maxY = Math.max(maxY, fObject.bbox.bottom);
-					}
-					else
-					{
-						maxY = fObject.bbox.bottom;
-						maxYChanged = true;
-					}
-				}
-				var tempXScale = (screenWidth - this.zoomMarginH * 2) / (maxX - minX);
-				var tempYScale = (screenHeight - this.zoomMarginV * 2) / (maxY - minY);
-				tempX = CMath.lerp(minX, maxX, 0.5);
-				tempY = CMath.lerp(minY, maxY, 0.5);
-				if (this.x < ((screenWidth / 2) / tempXScale))
-				{
-					tempXScale = (screenWidth - this.zoomMarginH) / maxX;
-					tempX = (screenWidth / tempXScale) / 2;
-				}
-				if (this.x > (layout.width - (screenWidth / 2) / tempXScale))
-				{
-					tempXScale = (screenWidth - this.zoomMarginH) / (layout.width - minX);
-					tempX = layout.width - (screenWidth / tempXScale) / 2;
-				}
-				if (this.y < ((screenHeight / 2) / tempYScale))
-				{
-					tempYScale = (screenHeight - this.zoomMarginV) / maxY;
-					tempY = (screenHeight / tempYScale) / 2;
-				}
-				if (this.y > (layout.height - (screenHeight / 2) / tempYScale))
-				{
-					tempYScale = (screenHeight - this.zoomMarginV) / (layout.height - minY);
-					tempY = layout.height - (screenHeight / tempYScale) / 2;
-				}
-				tempScale = Math.min(tempXScale, tempYScale);
-				if (this.zoomBoundL != -1)
-				{
-					if (tempScale < this.zoomBoundL)
-					{
-						tempScale = this.zoomBoundL;
-					}
-				}
-				if (this.zoomBoundU != -1)
-				{
-					if (tempScale > this.zoomBoundU)
-					{
-						tempScale = this.zoomBoundU;
-					}
-				}
-			}
-			if (this.followLag == 1)
-			{
-				this.x = tempX;
-				this.y = tempY;
-				if (this.zoomToContain)
-				{
-					this.scale = tempScale;
-				}
-			}
-			else
-			{
-				var lag = (this.followLag * 4.0 * dt) * Math.sqrt(1.0 / dt);
-				this.x = CMath.lerp(this.x, tempX, lag);
-				this.y = CMath.lerp(this.y, tempY, lag);
-				if (this.zoomToContain)
-				{
-					this.scale = CMath.lerp(this.scale, tempScale, lag);
-				}
-			}
-		}
-	};
-	var pluginProto = cr.plugins_.MagiCam.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-		this.localCameras = [];
-		this.localCameraCount = 0;
-		this.localCameraCountOld = 0;
-		this.transCamera = null;
-		this.transTarget = null;
-		this.isSwitchingCameras = false;
-		this.globalCameras = [];
-		this.activeCamera = null;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	instanceProto.onCreate = function()
-	{
-		this.runtime.tickMe(this);
-		this.my_timescale = -1.0;
-	};
-	instanceProto.saveToJSON = function ()
-	{
-		if (null != this.transCamera)
-		{
-			this.localCameras.push(this.transCamera);
-		}
-		var o = {
-			"lcc": this.localCameraCount,
-			"olcc": this.localCameraCountOld,
-			"alcc": this.localCameras.length,
-			"agcc": this.globalCameras.length,
-			"tcnn": (this.transCamera == null ? false : true)
-		};
-		for (var i = 0; i < this.localCameras.length; i++)
-		{
-			o["lc" + i + "g"] = this.localCameras[i].global;
-			o["lc" + i + "n"] = this.localCameras[i].name;
-			o["lc" + i + "x"] = this.localCameras[i].x;
-			o["lc" + i + "y"] = this.localCameras[i].y;
-			o["lc" + i + "s"] = this.localCameras[i].scale;
-			o["lc" + i + "f"] = this.localCameras[i].following;
-			o["lc" + i + "foc"] = this.localCameras[i].followedObjects.length;
-			for (var f = 0; f < this.localCameras[i].followedObjects.length; f++)
-			{
-				o["lc" + i + "fo" + f] = this.localCameras[i].followedObjects[f].uid;
-			}
-			for (var w = 0; w < this.localCameras[i].objectWeights.length; w++)
-			{
-				o["lc" + i + "fow" + w] = this.localCameras[i].objectWeights[w];
-			}
-			for (var ip = 0; ip < this.localCameras[i].followedObjectIPs.length; ip++)
-			{
-				o["lc" + i + "foip" + ip] = this.localCameras[i].followedObjectIPs[ip];
-			}
-			o["lc" + i + "fl"] = this.localCameras[i].followLag;
-			o["lc" + i + "ztc"] = this.localCameras[i].zoomToContain;
-			o["lc" + i + "zmh"] = this.localCameras[i].zoomMarginH;
-			o["lc" + i + "zmv"] = this.localCameras[i].zoomMarginV;
-			o["lc" + i + "zbu"] = this.localCameras[i].zoomBoundU;
-			o["lc" + i + "zbl"] = this.localCameras[i].zoomBoundL;
-			o["lc" + i + "tc"] = this.localCameras[i].transitions.length;
-			for (var t = 0; t < this.localCameras[i].transitions.length; t++)
-			{
-				o["lc" + i + "t" + t + "tp"] = this.localCameras[i].transitions[t].type;
-				o["lc" + i + "t" + t + "d"] = this.localCameras[i].transitions[t].duration;
-				o["lc" + i + "t" + t + "p1"] = this.localCameras[i].transitions[t].param1;
-				o["lc" + i + "t" + t + "p2"] = this.localCameras[i].transitions[t].param2;
-				o["lc" + i + "t" + t + "p3"] = this.localCameras[i].transitions[t].param3;
-				o["lc" + i + "t" + t + "p4"] = this.localCameras[i].transitions[t].param4;
-				o["lc" + i + "t" + t + "pr"] = this.localCameras[i].transitions[t].progress;
-			}
-			o["lc" + i + "mtf"] = this.localCameras[i].moveTransFinished;
-			o["lc" + i + "ztf"] = this.localCameras[i].zoomTransFinished;
-			o["lc" + i + "csis"] = this.localCameras[i].isShaking;
-			o["lc" + i + "cssx"] = this.localCameras[i].shakeX;
-			o["lc" + i + "cssy"] = this.localCameras[i].shakeY;
-			o["lc" + i + "cssz"] = this.localCameras[i].shakeZoom;
-			o["lc" + i + "csst"] = this.localCameras[i].shakeTimer;
-			o["lc" + i + "csss"] = this.localCameras[i].shakeStrength;
-			o["lc" + i + "cssmd"] = this.localCameras[i].shakeMaxDeviation;
-			o["lc" + i + "cssmzd"] = this.localCameras[i].shakeMaxZoomDeviation;
-			o["lc" + i + "cssl"] = this.localCameras[i].shakeLength;
-			o["lc" + i + "cssbt"] = this.localCameras[i].shakeBuildTime;
-			o["lc" + i + "cssdt"] = this.localCameras[i].shakeDropTime;
-		}
-		for (var i = 0; i < this.globalCameras.length; i++)
-		{
-			o["gc" + i + "g"] = this.globalCameras[i].global;
-			o["gc" + i + "n"] = this.globalCameras[i].name;
-			o["gc" + i + "x"] = this.globalCameras[i].x;
-			o["gc" + i + "y"] = this.globalCameras[i].y;
-			o["gc" + i + "s"] = this.globalCameras[i].scale;
-			o["gc" + i + "f"] = this.globalCameras[i].following;
-			o["gc" + i + "foc"] = this.globalCameras[i].followedObjects.length;
-			for (var f = 0; f < this.globalCameras[i].followedObjects.length; f++)
-			{
-				o["gc" + i + "fo" + f] = this.globalCameras[i].followedObjects[f].uid;
-			}
-			for (var w = 0; w < this.globalCameras[i].objectWeights.length; w++)
-			{
-				o["gc" + i + "fow" + w] = this.globalCameras[i].objectWeights[w];
-			}
-			for (var ip = 0; ip < this.globalCameras[i].followedObjectIPs.length; ip++)
-			{
-				o["gc" + i + "foip" + ip] = this.globalCameras[i].followedObjectIPs[ip];
-			}
-			o["gc" + i + "fl"] = this.globalCameras[i].followLag;
-			o["gc" + i + "ztc"] = this.globalCameras[i].zoomToContain;
-			o["gc" + i + "zmh"] = this.globalCameras[i].zoomMarginH;
-			o["gc" + i + "zmv"] = this.globalCameras[i].zoomMarginV;
-			o["gc" + i + "zbu"] = this.globalCameras[i].zoomBoundU;
-			o["gc" + i + "zbl"] = this.globalCameras[i].zoomBoundL;
-			o["gc" + i + "tc"] = this.globalCameras[i].transitions.length;
-			for (var t = 0; t < this.globalCameras[i].transitions.length; t++)
-			{
-				o["gc" + i + "t" + t + "tp"] = this.globalCameras[i].transitions[t].type;
-				o["gc" + i + "t" + t + "d"] = this.globalCameras[i].transitions[t].duration;
-				o["gc" + i + "t" + t + "p1"] = this.globalCameras[i].transitions[t].param1;
-				o["gc" + i + "t" + t + "p2"] = this.globalCameras[i].transitions[t].param2;
-				o["gc" + i + "t" + t + "p3"] = this.globalCameras[i].transitions[t].param3;
-				o["gc" + i + "t" + t + "p4"] = this.globalCameras[i].transitions[t].param4;
-			}
-			o["gc" + i + "mtf"] = this.globalCameras[i].moveTransFinished;
-			o["gc" + i + "ztf"] = this.globalCameras[i].zoomTransFinished;
-			o["gc" + i + "csis"] = this.globalCameras[i].isShaking;
-			o["gc" + i + "cssx"] = this.globalCameras[i].shakeX;
-			o["gc" + i + "cssy"] = this.globalCameras[i].shakeY;
-			o["gc" + i + "cssz"] = this.globalCameras[i].shakeZoom;
-			o["gc" + i + "csst"] = this.globalCameras[i].shakeTimer;
-			o["gc" + i + "csss"] = this.globalCameras[i].shakeStrength;
-			o["gc" + i + "cssmd"] = this.globalCameras[i].shakeMaxDeviation;
-			o["gc" + i + "cssmzd"] = this.globalCameras[i].shakeMaxZoomDeviation;
-			o["gc" + i + "cssl"] = this.globalCameras[i].shakeLength;
-			o["gc" + i + "cssbt"] = this.globalCameras[i].shakeBuildTime;
-			o["gc" + i + "cssdt"] = this.globalCameras[i].shakeDropTime;
-		}
-		if (null != this.activeCamera)
-		{
-			o["ac"] = this.activeCamera.name;
-		}
-		else
-		{
-			o["ac"] = "null";
-		}
-		if (null != this.transTarget)
-		{
-			o["tt"] = this.transTarget.name;
-		}
-		return o;
-	}
-	instanceProto.loadFromJSON = function (o)
-	{
-		this.localCameras = [];
-		this.globalCameras = [];
-		this.localCameraCount = o["lcc"];
-		this.localCameraCountOld = o["olcc"];
-		var localCamCount = o["alcc"];
-		for (var i = 0; i < localCamCount; i++)
-		{
-			var tempCam = new Camera("", 0, 0, 0, false);
-			tempCam.global = o["lc" + i + "g"];
-			tempCam.name = o["lc" + i + "n"];
-			tempCam.x = o["lc" + i + "x"];
-			tempCam.y = o["lc" + i + "y"];
-			tempCam.scale = o["lc" + i + "s"];
-			tempCam.following = o["lc" + i + "f"];
-			var foCount = o["lc" + i + "foc"];
-			for (var f = 0; f < foCount; f++)
-			{
-				tempCam.followedObjectUIDs.push(o["lc" + i + "fo" + f]);
-			}
-			for (var w = 0; w < foCount; w++)
-			{
-				tempCam.objectWeights.push(o["lc" + i + "fow" + w]);
-			}
-			for (var ip = 0; ip < foCount; ip++)
-			{
-				tempCam.followedObjectIPs.push(o["lc" + i + "foip" + ip]);
-			}
-			tempCam.followLag = o["lc" + i + "fl"];
-			tempCam.zoomToContain = o["lc" + i + "ztc"];
-			tempCam.zoomMarginH = o["lc" + i + "zmh"];
-			tempCam.zoomMarginV = o["lc" + i + "zmv"];
-			tempCam.zoomBoundU = o["lc" + i + "zbu"];
-			tempCam.zoomBoundL = o["lc" + i + "zbl"];
-			var transCount = o["lc" + i + "tc"];
-			for (var t = 0; t < transCount; t++)
-			{
-				var tempTrans = new Transition("", 0, 0, 0, 0);
-				tempTrans.type = o["lc" + i + "t" + t + "tp"];
-				tempTrans.duration = o["lc" + i + "t" + t + "d"];
-				tempTrans.param1 = o["lc" + i + "t" + t + "p1"];
-				tempTrans.param2 = o["lc" + i + "t" + t + "p2"];
-				tempTrans.param3 = o["lc" + i + "t" + t + "p3"];
-				tempTrans.param4 = o["lc" + i + "t" + t + "p4"];
-				tempTrans.progress = o["lc" + i + "t" + t + "pr"];
-				tempCam.transitions.push(tempTrans);
-			}
-			tempCam.moveTransFinished = o["lc" + i + "mtf"];
-			tempCam.zoomTransFinished = o["lc" + i + "ztf"];
-			tempCam.isShaking = o["lc" + i + "csis"];
-			tempCam.shakeX = o["lc" + i + "cssx"];
-			tempCam.shakeY = o["lc" + i + "cssy"];
-			tempCam.shakeZoom = o["lc" + i + "cssz"];
-			tempCam.shakeTimer = o["lc" + i + "csst"];
-			tempCam.shakeStrength = o["lc" + i + "csss"];
-			tempCam.shakeMaxDeviation = o["lc" + i + "cssmd"];
-			tempCam.shakeMaxZoomDeviation = o["lc" + i + "cssmzd"];
-			tempCam.shakeLength = o["lc" + i + "cssl"];
-			tempCam.shakeBuildTime = o["lc" + i + "cssbt"];
-			tempCam.shakeDropTime = o["lc" + i + "cssdt"];
-			this.localCameras.push(tempCam);
-		}
-		var globalCamCount = o["agcc"];
-		for (var i = 0; i < globalCamCount; i++)
-		{
-			var tempCam = new Camera("", 0, 0, 0, false);
-			tempCam.global = o["gc" + i + "g"];
-			tempCam.name = o["gc" + i + "n"];
-			tempCam.x = o["gc" + i + "x"];
-			tempCam.y = o["gc" + i + "y"];
-			tempCam.scale = o["gc" + i + "s"];
-			tempCam.following = o["gc" + i + "f"];
-			var foCount = o["gc" + i + "foc"];
-			for (var f = 0; f < foCount; f++)
-			{
-				tempCam.followedObjectUIDs.push(o["gc" + i + "fo" + f]);
-			}
-			for (var w = 0; w < foCount; w++)
-			{
-				tempCam.objectWeights.push(o["gc" + i + "fow" + w]);
-			}
-			for (var ip = 0; ip < foCount; ip++)
-			{
-				tempCam.followedObjectIPs.push(o["gc" + i + "foip" + ip]);
-			}
-			tempCam.followLag = o["gc" + i + "fl"];
-			tempCam.zoomToContain = o["gc" + i + "ztc"];
-			tempCam.zoomMarginH = o["gc" + i + "zmh"];
-			tempCam.zoomMarginV = o["gc" + i + "zmv"];
-			tempCam.zoomBoundU = o["gc" + i + "zbu"];
-			tempCam.zoomBoundL = o["gc" + i + "zbl"];
-			var transCount = o["gc" + i + "tc"];
-			for (var t = 0; t < transCount; t++)
-			{
-				var tempTrans = new Transition("", 0, 0, 0, 0);
-				tempTrans.type = o["gc" + i + "t" + t + "tp"];
-				tempTrans.duration = o["gc" + i + "t" + t + "d"];
-				tempTrans.param1 = o["gc" + i + "t" + t + "p1"];
-				tempTrans.param2 = o["gc" + i + "t" + t + "p2"];
-				tempTrans.param3 = o["gc" + i + "t" + t + "p3"];
-				tempTrans.param4 = o["gc" + i + "t" + t + "p4"];
-				tempCam.transitions.push(tempTrans);
-			}
-			tempCam.moveTransFinished = o["gc" + i + "mtf"];
-			tempCam.zoomTransFinished = o["gc" + i + "ztf"];
-			tempCam.isShaking = o["gc" + i + "csis"];
-			tempCam.shakeX = o["gc" + i + "cssx"];
-			tempCam.shakeY = o["gc" + i + "cssy"];
-			tempCam.shakeZoom = o["gc" + i + "cssz"];
-			tempCam.shakeTimer = o["gc" + i + "csst"];
-			tempCam.shakeStrength = o["gc" + i + "csss"];
-			tempCam.shakeMaxDeviation = o["gc" + i + "cssmd"];
-			tempCam.shakeMaxZoomDeviation = o["gc" + i + "cssmzd"];
-			tempCam.shakeLength = o["gc" + i + "cssl"];
-			tempCam.shakeBuildTime = o["gc" + i + "cssbt"];
-			tempCam.shakeDropTime = o["gc" + i + "cssdt"];
-			this.globalCameras.push(tempCam);
-		}
-		var activeCam = o["ac"];
-		if (activeCam == "null")
-		{
-			this.activeCamera = null;
-		}
-		else
-		{
-			this.activeCamera = this.GetCamera(activeCam);
-		}
-		var hasTransCam = o["tcnn"];
-		if (hasTransCam)
-		{
-			this.transCamera = this.localCameras.pop();
-			this.transTarget = this.GetCamera(o["tt"]);
-		}
-	}
-	instanceProto.afterLoad = function()
-	{
-		for (var i = 0; i < this.localCameras.length; i++)
-		{
-			for (var o = 0; o < this.localCameras[i].followedObjectUIDs.length; o++)
-			{
-				this.localCameras[i].followedObjects.push(this.runtime.getObjectByUID(this.localCameras[i].followedObjectUIDs[o]));
-			}
-		}
-		for (var i = 0; i < this.globalCameras.length; i++)
-		{
-			for (var o = 0; o < this.globalCameras[i].followedObjectUIDs.length; o++)
-			{
-				this.globalCameras[i].followedObjects.push(this.runtime.getObjectByUID(this.globalCameras[i].followedObjectUIDs[o]));
-			}
-		}
-	}
-	instanceProto.onLayoutChange = function()
-	{
-		for (var i = 0; i < this.localCameraCountOld; i++)
-		{
-			this.localCameras.shift();
-		}
-		this.localCameraCount -= this.localCameraCountOld;
-	}
-	instanceProto.tick = function()
-	{
-		this.localCameraCountOld = this.localCameraCount;
-		var dt = this.runtime.getDt(this);
-		if (dt == 0)
-		{
-			dt = 0.1;
-		}
-		for (var i = 0; i < this.globalCameras.length; i++)
-		{
-			this.globalCameras[i].ProcessTransitions(dt);
-			this.globalCameras[i].ProcessFollowing(dt, this.runtime.original_width, this.runtime.original_height, this.runtime.running_layout);
-			this.globalCameras[i].ShakeCamera(dt);
-		}
-		for (var i = 0; i < this.localCameras.length; i++)
-		{
-			this.localCameras[i].ProcessTransitions(dt);
-			this.localCameras[i].ProcessFollowing(dt, this.runtime.original_width, this.runtime.original_height, this.runtime.running_layout);
-			this.localCameras[i].ShakeCamera(dt);
-		}
-		if (null != this.transCamera)
-		{
-			this.transCamera.UpdateCameraTarget(dt, this.transTarget);
-			this.transCamera.ProcessTransitions(dt);
-			if (this.transCamera.moveTransFinished)
-			{
-				this.activeCamera = this.transTarget;
-				this.transCamera = null;
-			}
-		}
-		if (this.activeCamera != null)
-		{
-			this.runtime.running_layout.scrollToX(this.activeCamera.GetX() + this.activeCamera.GetShakeX());
-			this.runtime.running_layout.scrollToY(this.activeCamera.GetY() + this.activeCamera.GetShakeY());
-			this.runtime.running_layout.scale = this.activeCamera.scale + this.activeCamera.shakeZoom;
-			this.runtime.redraw = true;
-		}
-	};
-	instanceProto.draw = function(ctx)
-	{
-	};
-	instanceProto.drawGL = function (glw)
-	{
-	};
-	instanceProto.GetCamera = function(Name)
-	{
-		if (Name == "")
-		{
-			return this.activeCamera;
-		}
-		for (var i = (this.globalCameras.length - 1) ; i >= 0; i--)
-		{
-			if (this.globalCameras[i].GetName() == Name)
-			{
-				return this.globalCameras[i];
-			}
-		}
-		for (var i = (this.localCameras.length - 1); i >= 0; i--)
-		{
-			if (this.localCameras[i].GetName() == Name)
-			{
-				return this.localCameras[i];
-			}
-		}
-		return null;
-	};
-	function Cnds() {};
-	Cnds.prototype.TransitionFinished = function (CameraName, Transition)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			if (Transition == 0)
-			{
-				return camera.moveTransFinished;
-			}
-			else if (Transition == 1)
-			{
-				return camera.zoomTransFinished;
-			}
-		}
-		return false;
-	};
-	Cnds.prototype.TransitionIsInProgress = function (CameraName, Transition)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			for (var i = 0; i < camera.transitions.length; i++)
-			{
-				if (camera.transitions[i].type == "MOVE" && Transition == 0)
-				{
-					return true;
-				}
-				else if (camera.transitions[i].type == "SCALE" && Transition == 1)
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.FollowObject = function (CameraName, FollowedObject, ObjectWeight, ImagePoint)
-	{
-		if (!FollowedObject)
-		{
-			return;
-		}
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			var followedObject = FollowedObject.getFirstPicked();
-			if (camera.global && !FollowedObject.global)
-			{
-				alert("MagiCam:\n\nObject not global - global cameras must follow global objects.");
-				return;
-			}
-			camera.followedObjects.push(followedObject);
-			camera.objectWeights.push(ObjectWeight);
-			camera.followedObjectIPs.push(ImagePoint);
-		}
-	};
-	Acts.prototype.SetFollowLag = function (CameraName, FollowLag)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.followLag = 1 - FollowLag / 100;
-		}
-	};
-	Acts.prototype.ZoomToContain = function (CameraName, Zoom, ZoomMarginH, ZoomMarginV, ZoomBoundU, ZoomBoundL)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			if (Zoom == 0)
-			{
-				camera.zoomToContain = true;
-				camera.zoomMarginH = ZoomMarginH;
-				camera.zoomMarginV = ZoomMarginV;
-				camera.zoomBoundU = ZoomBoundU;
-				camera.zoomBoundL = ZoomBoundL;
-			}
-			else
-			{
-				camera.zoomToContain = false;
-			}
-		}
-	};
-	Acts.prototype.EnableFollowing = function (CameraName, Following)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			if (Following == 0)
-			{
-				camera.following = true;
-			}
-			else
-			{
-				camera.following = false;
-			}
-		}
-	};
-	Acts.prototype.UnfollowObject = function (CameraName, FollowedObject)
-	{
-		if (!FollowedObject)
-		{
-			return;
-		}
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			var followedObject = FollowedObject.getFirstPicked();
-			for (var i = 0; i < camera.followedObjects.length; i++)
-			{
-				if (camera.followedObjects[i] == followedObject)
-				{
-					camera.followedObjects.splice(i, 1);
-					break;
-				}
-			}
-		}
-	};
-	Acts.prototype.CreateLocalCamera = function (cameraName, cameraX, cameraY, cameraScale, Active)
-	{
-		if (cameraName == "")
-		{
-			alert("Camera name must not be blank.");
-			return;
-		}
-		this.localCameras.push(new Camera(cameraName, cameraX, cameraY, cameraScale, false));
-		this.localCameraCount++;
-		if (Active == 1)
-		{
-			this.activeCamera = this.localCameras[this.localCameras.length - 1];
-			this.runtime.running_layout.scale = this.activeCamera.scale;
-		}
-	};
-	Acts.prototype.CreateGlobalCamera = function (cameraName, cameraX, cameraY, cameraScale, Active)
-	{
-		if (cameraName == "")
-		{
-			alert("Camera name must not be blank.");
-			return;
-		}
-		else if (this.GetCamera(cameraName) != null)
-		{
-			return;
-		}
-		this.globalCameras.push(new Camera(cameraName, cameraX, cameraY, cameraScale, true));
-		if (Active == 1)
-		{
-			this.activeCamera = this.globalCameras[this.globalCameras.length - 1];
-			this.runtime.running_layout.scrollToX(this.activeCamera.GetX());
-			this.runtime.running_layout.scrollToY(this.activeCamera.GetY());
-			this.runtime.running_layout.scale = this.activeCamera.scale;
-		}
-	};
-	Acts.prototype.SetActiveCamera = function (CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			this.activeCamera = camera;
-			this.runtime.running_layout.scrollToX(camera.GetX());
-			this.runtime.running_layout.scrollToY(camera.GetY());
-			this.runtime.running_layout.scale = camera.scale;
-		}
-	};
-	Acts.prototype.SetScrollSmoothing = function (CameraName)
-	{
-	};
-	Acts.prototype.SetXPosition = function (CameraName, X)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.SetX(X);
-		}
-	};
-	Acts.prototype.SetYPosition = function (CameraName, Y)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.SetY(Y);
-		}
-	};
-	Acts.prototype.SetPosition = function (CameraName, X, Y)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.SetX(X);
-			camera.SetY(Y);
-		}
-	};
-	Acts.prototype.SetZoom = function (CameraName, Zoom)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.scale = Zoom;
-		}
-	};
-	Acts.prototype.TransitionToPoint = function (CameraName, X, Y, Duration)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			for (var i = 0; i < camera.transitions.length; i++)
-			{
-				if (camera.transitions[i].type == "MOVE")
-				{
-					camera.transitions.splice(i, 1);
-					break;
-				}
-			}
-			camera.transitions.push(new Transition("MOVE", Duration, X, Y, camera.GetX(), camera.GetY()));
-			camera.following = false;
-			camera.zoomToContain = false;
-		}
-	};
-	Acts.prototype.TransitionToZoom = function (CameraName, Zoom, Duration)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			for (var i = 0; i < camera.transitions.length; i++)
-			{
-				if (camera.transitions[i].type == "SCALE")
-				{
-					camera.transitions.splice(i, 1);
-					break;
-				}
-			}
-			camera.transitions.push(new Transition("SCALE", Duration, Zoom, camera.scale, null, null));
-			camera.zoomToContain = false;
-		}
-	};
-	Acts.prototype.TransitionToCamera = function (CameraName, Duration)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			this.transTarget = camera;
-			this.transCamera = new Camera("transCamera", this.activeCamera.GetX(), this.activeCamera.GetY(), this.activeCamera.scale, false);
-			this.transCamera.transitions.push(new Transition("MOVE", Duration, this.transTarget.GetX(), this.transTarget.GetY(), this.transCamera.GetX(), this.transCamera.GetY()));
-			this.transCamera.transitions.push(new Transition("SCALE", Duration, this.transTarget.scale, this.transCamera.scale, null, null));
-			this.activeCamera = this.transCamera;
-			this.isSwitchingCameras = true;
-		}
-	};
-	Acts.prototype.ShakeCamera = function (CameraName, Strength, MaxDeviation, MaxZoomDeviation, BuildLength, DropTime, Duration)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (camera != null)
-		{
-			camera.isShaking = true;
-			camera.shakeStrength = Strength / 100;
-			camera.shakeMaxDeviation = MaxDeviation;
-			camera.shakeMaxZoomDeviation = MaxZoomDeviation;
-			camera.shakeBuildTime = BuildLength;
-			camera.shakeDropTime = DropTime;
-			camera.shakeLength = Duration;
-			camera.shakeTimer = 0;
-		}
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.MovementTransitionProgress = function (ret, CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (null != camera)
-		{
-			for (var i = 0; i < camera.transitions.length; i++)
-			{
-				if (camera.transitions[i].type == "MOVE")
-				{
-					ret.set_float(camera.transitions[i].progress);
-					return;
-				}
-			}
-		}
-		ret.set_float(0);
-	};
-	Exps.prototype.ZoomTransitionProgress = function (ret, CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (null != camera)
-		{
-			for (var i = 0; i < camera.transitions.length; i++)
-			{
-				if (camera.transitions[i].type == "SCALE")
-				{
-					ret.set_float(camera.transitions[i].progress);
-					return;
-				}
-			}
-		}
-		ret.set_float(0);
-	};
-	Exps.prototype.GetX = function (ret, CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (null != camera)
-		{
-			ret.set_float(camera.x);
-			return;
-		}
-		ret.set_float(0);
-	};
-	Exps.prototype.GetY = function (ret, CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (null != camera)
-		{
-			ret.set_float(camera.y);
-			return;
-		}
-		ret.set_float(0);
-	};
-	Exps.prototype.GetZoom = function (ret, CameraName)
-	{
-		var camera = this.GetCamera(CameraName);
-		if (null != camera)
-		{
-			ret.set_float(camera.scale);
-			return;
-		}
-		ret.set_float(0);
-	};
-	Exps.prototype.GetActiveCamera = function (ret)
-	{
-		if (null != this.activeCamera)
-		{
-			ret.set_string(this.activeCamera.name);
-			return;
-		}
-		ret.set_string("null");
 	};
 	pluginProto.exps = new Exps();
 }());
@@ -25960,6 +22657,65 @@ cr.plugins_.Touch = function(runtime)
 }());
 ;
 ;
+cr.plugins_.cjs = function(runtime)
+{
+	this.runtime = runtime;
+};
+(function ()
+{
+	var pluginProto = cr.plugins_.cjs.prototype;
+	pluginProto.Type = function(plugin)
+	{
+		this.plugin = plugin;
+		this.runtime = plugin.runtime;
+	};
+	var typeProto = pluginProto.Type.prototype;
+	typeProto.onCreate = function()
+	{
+	};
+	pluginProto.Instance = function(type)
+	{
+		this.type = type;
+		this.runtime = type.runtime;
+	};
+	var instanceProto = pluginProto.Instance.prototype;
+	instanceProto.onCreate = function()
+	{
+		this.nameOfExternalScript = this.properties[0];
+		this.returnValue= "";
+		var myScriptTag=document.createElement('script');
+		myScriptTag.setAttribute("type","text/javascript");
+		myScriptTag.setAttribute("src", this.nameOfExternalScript);
+		if (typeof myScriptTag != "undefined")
+			document.getElementsByTagName("head")[0].appendChild(myScriptTag);
+	};
+	instanceProto.draw = function(ctx)
+	{
+	};
+	pluginProto.cnds = {};
+	var cnds = pluginProto.cnds;
+	pluginProto.acts = {};
+	var acts = pluginProto.acts;
+	acts.ExecuteJS = function (myparam)
+	{
+		this.returnValue= "";
+		try
+		{
+			this.returnValue= eval(myparam);
+		} catch(err)
+		{
+			this.returnValue= err;
+        }
+	};
+	pluginProto.exps = {};
+	var exps = pluginProto.exps;
+	exps.ReadExecutionReturn = function (ret)
+	{
+		ret.set_string(this.returnValue);
+	};
+}());
+;
+;
 cr.plugins_.filechooser = function(runtime)
 {
 	this.runtime = runtime;
@@ -28792,7 +25548,55 @@ cr.getProjectModel = function() { return [
 	"Home",
 	[
 	[
+		cr.plugins_.AJAX,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.Dictionary,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.PhonegapVibration,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
 		cr.plugins_.Arr,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.cjs,
 		false,
 		false,
 		false,
@@ -28828,83 +25632,11 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.Browser,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
 		cr.plugins_.Button,
 		false,
 		true,
 		true,
 		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.CJSAds,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.PhonegapVibration,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.Dictionary,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.Facebook2,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.FBComplete,
-		true,
-		false,
-		false,
-		false,
 		false,
 		false,
 		false,
@@ -28936,18 +25668,6 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.MagiCam,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
 		cr.plugins_.rex_TouchWrap,
 		true,
 		false,
@@ -28957,30 +25677,6 @@ cr.getProjectModel = function() { return [
 		false,
 		false,
 		false,
-		false
-	]
-,	[
-		cr.plugins_.TextBox,
-		false,
-		true,
-		true,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
-		cr.plugins_.Text,
-		false,
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
 		false
 	]
 ,	[
@@ -28996,18 +25692,6 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.Touch,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		false
-	]
-,	[
 		cr.plugins_.Spritefont2,
 		false,
 		true,
@@ -29018,6 +25702,18 @@ cr.getProjectModel = function() { return [
 		true,
 		true,
 		true
+	]
+,	[
+		cr.plugins_.Text,
+		false,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		false
 	]
 ,	[
 		cr.plugins_.TiledBg,
@@ -29032,7 +25728,19 @@ cr.getProjectModel = function() { return [
 		true
 	]
 ,	[
-		cr.plugins_.AJAX,
+		cr.plugins_.TextBox,
+		false,
+		true,
+		true,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false
+	]
+,	[
+		cr.plugins_.Touch,
 		true,
 		false,
 		false,
@@ -29643,24 +26351,6 @@ cr.getProjectModel = function() { return [
 	]
 ,	[
 		"t22",
-		cr.plugins_.Browser,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		2876255067602594,
-		[],
-		null
-		,[]
-	]
-,	[
-		"t23",
 		cr.plugins_.Sprite,
 		false,
 		[2830841367282517],
@@ -29707,7 +26397,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t24",
+		"t23",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29754,7 +26444,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t25",
+		"t24",
 		cr.plugins_.Sprite,
 		false,
 		[6373915850863768],
@@ -29771,7 +26461,7 @@ cr.getProjectModel = function() { return [
 			false,
 			3901866927287303,
 			[
-				["img/pause-sheet0.png", 2811, 0, 0, 800, 1134, 1, 0.5, 0.5,[],[-0.2881250977516174,-0.4100528955459595,-0.2887501120567322,-0.4982363283634186,0.5,-0.5,0.5,0.5,-0.5,0.5,-0.5,-0.4100531935691834],0]
+				["img/pause-sheet0.png", 2811, 0, 0, 800, 1134, 1, 0.5, 0.5,[],[-0.2881249785423279,-0.4100528955459595,-0.2887499928474426,-0.4982363283634186,0.5,-0.5,0.5,0.5,-0.5,0.5,-0.5,-0.4100531935691834],0]
 			]
 			]
 		],
@@ -29789,7 +26479,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t26",
+		"t25",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29841,7 +26531,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t27",
+		"t26",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29893,7 +26583,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t28",
+		"t27",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29945,7 +26635,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t29",
+		"t28",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -29997,7 +26687,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t30",
+		"t29",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30027,7 +26717,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t31",
+		"t30",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30098,7 +26788,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t32",
+		"t31",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30128,7 +26818,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t33",
+		"t32",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30158,7 +26848,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t34",
+		"t33",
 		cr.plugins_.Sprite,
 		false,
 		[5789409217027599,8822941706159206,1472464387927755],
@@ -30210,7 +26900,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t35",
+		"t34",
 		cr.plugins_.Sprite,
 		false,
 		[9906083383870041],
@@ -30289,7 +26979,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t36",
+		"t35",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30319,7 +27009,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t37",
+		"t36",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30354,7 +27044,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t38",
+		"t37",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30384,7 +27074,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t39",
+		"t38",
 		cr.plugins_.Sprite,
 		false,
 		[849896918888654],
@@ -30431,7 +27121,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t40",
+		"t39",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30473,7 +27163,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t41",
+		"t40",
 		cr.plugins_.TiledBg,
 		false,
 		[],
@@ -30490,7 +27180,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t42",
+		"t41",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30520,7 +27210,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t43",
+		"t42",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30562,7 +27252,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t44",
+		"t43",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30633,7 +27323,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t45",
+		"t44",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30663,7 +27353,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t46",
+		"t45",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -30680,7 +27370,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t47",
+		"t46",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30710,7 +27400,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t48",
+		"t47",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -30727,7 +27417,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t49",
+		"t48",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30793,7 +27483,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t50",
+		"t49",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30823,7 +27513,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t51",
+		"t50",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -30840,7 +27530,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t52",
+		"t51",
 		cr.plugins_.TiledBg,
 		false,
 		[],
@@ -30857,25 +27547,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t53",
-		cr.plugins_.MagiCam,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		5561136377483534,
-		[],
-		null
-		,[]
-	]
-,	[
-		"t54",
+		"t52",
 		cr.plugins_.Audio,
 		false,
 		[],
@@ -30893,7 +27565,7 @@ cr.getProjectModel = function() { return [
 		,[0,0,0,1,1,600,600,10000,1,5000,1]
 	]
 ,	[
-		"t55",
+		"t53",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30923,7 +27595,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t56",
+		"t54",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -30994,7 +27666,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t57",
+		"t55",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31024,7 +27696,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t58",
+		"t56",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31054,7 +27726,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t59",
+		"t57",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31071,7 +27743,7 @@ cr.getProjectModel = function() { return [
 			false,
 			7043868815598636,
 			[
-				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 1, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[-0.4972664415836334,-0.4903755784034729,-0.0008635520935058594,-0.2449764907360077,0.4235964417457581,-0.2449764907360077,0.4991364479064941,-0.00571247935295105,0.4991364479064941,0.4973545074462891,-0.0008635520935058594,0.4973545074462891,-0.4235254526138306,0.233550488948822,-0.4666908383369446,-0.00571247935295105],0]
+				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 1, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[],0]
 			]
 			]
 ,			[
@@ -31083,7 +27755,7 @@ cr.getProjectModel = function() { return [
 			false,
 			9958716513276015,
 			[
-				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 257, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[-0.4972664415836334,-0.4903755784034729,-0.0008635520935058594,-0.2449764907360077,0.4235964417457581,-0.2449764907360077,0.4991364479064941,-0.00571247935295105,0.4991364479064941,0.4973545074462891,-0.0008635520935058594,0.4973545074462891,-0.4235254526138306,0.233550488948822,-0.4666908383369446,-0.00571247935295105],0]
+				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 257, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[],0]
 			]
 			]
 ,			[
@@ -31095,7 +27767,7 @@ cr.getProjectModel = function() { return [
 			false,
 			1527565569649016,
 			[
-				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 1, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[-0.4972664415836334,-0.4903755784034729,-0.0008635520935058594,-0.2449764907360077,0.4235964417457581,-0.2449764907360077,0.4991364479064941,-0.00571247935295105,0.4991364479064941,0.4973545074462891,-0.0008635520935058594,0.4973545074462891,-0.4235254526138306,0.233550488948822,-0.4666908383369446,-0.00571247935295105],0]
+				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 1, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[],0]
 			]
 			]
 ,			[
@@ -31107,7 +27779,7 @@ cr.getProjectModel = function() { return [
 			false,
 			1674587765081863,
 			[
-				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 513, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[-0.4972664415836334,-0.4903755784034729,-0.0008635520935058594,-0.2449764907360077,0.4235964417457581,-0.2449764907360077,0.4991364479064941,-0.00571247935295105,0.4991364479064941,0.4973545074462891,-0.0008635520935058594,0.4973545074462891,-0.4235254526138306,0.233550488948822,-0.4666908383369446,-0.00571247935295105],0]
+				["img/inscrie_scorul_in_top-sheet0.png", 65679, 1, 513, 579, 189, 1, 0.5008635520935059, 0.5026454925537109,[],[],0]
 			]
 			]
 		],
@@ -31125,7 +27797,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t60",
+		"t58",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31155,7 +27827,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t61",
+		"t59",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31172,19 +27844,7 @@ cr.getProjectModel = function() { return [
 			false,
 			2640933710359334,
 			[
-				["img/score_hud-sheet0.png", 9432, 1, 1, 640, 95, 1, 0.5, 0.5052631497383118,[],[0.2484380006790161,-0.0105261504650116,-0.3859370052814484,-0.2736841440200806,-0.3703120052814484,-0.0105261504650116],0]
-			]
-			]
-,			[
-			"CuLoc",
-			5,
-			false,
-			1,
-			0,
-			false,
-			9122815247567975,
-			[
-				["img/score_hud-sheet0.png", 9432, 1, 129, 640, 95, 1, 0.5, 0.5052631497383118,[],[0.2484380006790161,-0.0105261504650116,-0.3859370052814484,-0.2736841440200806,-0.3703120052814484,-0.0105261504650116],0]
+				["img/score_hud-sheet0.png", 2477, 0, 0, 640, 95, 1, 0.5, 0.5052631497383118,[],[0.2484380006790161,-0.0105261504650116,-0.3859370052814484,-0.2736841440200806,-0.3703120052814484,-0.0105261504650116],0]
 			]
 			]
 		],
@@ -31197,7 +27857,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t62",
+		"t60",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31227,7 +27887,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t63",
+		"t61",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31257,7 +27917,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t64",
+		"t62",
 		cr.plugins_.AJAX,
 		false,
 		[],
@@ -31275,7 +27935,7 @@ cr.getProjectModel = function() { return [
 		,[]
 	]
 ,	[
-		"t65",
+		"t63",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31346,7 +28006,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t66",
+		"t64",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31376,7 +28036,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t67",
+		"t65",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31406,7 +28066,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t68",
+		"t66",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31436,7 +28096,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t69",
+		"t67",
 		cr.plugins_.Arr,
 		false,
 		[],
@@ -31453,7 +28113,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t70",
+		"t68",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31560,7 +28220,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t71",
+		"t69",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31667,7 +28327,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t72",
+		"t70",
 		cr.plugins_.Sprite,
 		false,
 		[6301253683801465],
@@ -31714,7 +28374,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t73",
+		"t71",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31744,7 +28404,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t74",
+		"t72",
 		cr.plugins_.Arr,
 		false,
 		[],
@@ -31761,7 +28421,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t75",
+		"t73",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31791,7 +28451,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t76",
+		"t74",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31821,7 +28481,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t77",
+		"t75",
 		cr.plugins_.CBhash,
 		false,
 		[],
@@ -31839,7 +28499,7 @@ cr.getProjectModel = function() { return [
 		,[]
 	]
 ,	[
-		"t78",
+		"t76",
 		cr.plugins_.Dictionary,
 		false,
 		[],
@@ -31856,7 +28516,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t79",
+		"t77",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -31873,7 +28533,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t80",
+		"t78",
 		cr.plugins_.Text,
 		false,
 		[],
@@ -31890,7 +28550,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t81",
+		"t79",
 		cr.plugins_.Function,
 		false,
 		[],
@@ -31908,7 +28568,7 @@ cr.getProjectModel = function() { return [
 		,[]
 	]
 ,	[
-		"t82",
+		"t80",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -31943,7 +28603,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t83",
+		"t81",
 		cr.plugins_.Text,
 		false,
 		[],
@@ -31960,7 +28620,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t84",
+		"t82",
 		cr.plugins_.Text,
 		false,
 		[],
@@ -31977,25 +28637,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t85",
-		cr.plugins_.Facebook2,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		1345960556310865,
-		[],
-		null
-		,["455787317892334","b28c5c88e5640522e0d6355f668928c1"]
-	]
-,	[
-		"t86",
+		"t83",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32025,7 +28667,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t87",
+		"t84",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32055,7 +28697,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t88",
+		"t85",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32107,43 +28749,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t89",
-		cr.plugins_.CJSAds,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		5621049820472587,
-		[],
-		null
-		,[0,1]
-	]
-,	[
-		"t90",
-		cr.plugins_.FBComplete,
-		false,
-		[],
-		0,
-		0,
-		null,
-		null,
-		[
-		],
-		false,
-		false,
-		9929843037303606,
-		[],
-		null
-		,["455787317892334",0,0,1,1,0,1]
-	]
-,	[
-		"t91",
+		"t86",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32173,7 +28779,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t92",
+		"t87",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32203,7 +28809,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t93",
+		"t88",
 		cr.plugins_.Text,
 		false,
 		[],
@@ -32220,7 +28826,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t94",
+		"t89",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32250,7 +28856,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t95",
+		"t90",
 		cr.plugins_.Arr,
 		false,
 		[],
@@ -32267,7 +28873,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t96",
+		"t91",
 		cr.plugins_.PhonegapVibration,
 		false,
 		[],
@@ -32285,7 +28891,7 @@ cr.getProjectModel = function() { return [
 		,[]
 	]
 ,	[
-		"t97",
+		"t92",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32302,7 +28908,7 @@ cr.getProjectModel = function() { return [
 			false,
 			6649924316833158,
 			[
-				["img/score_place-sheet0.png", 2241, 0, 0, 157, 57, 1, 0.5031847357749939, 0.5087719559669495,[],[-0.4076433181762695,-0.2456140518188477,-0.006369441747665405,-0.2631579041481018,0.4904458522796631,-0.4912281036376953,0.4904458522796631,-0.01754388213157654,0.4458598494529724,0.3508771657943726,-0.006369441747665405,0.3508771657943726,-0.4649681746959686,0.3859648704528809,-0.5031847357749939,-0.01754388213157654],0]
+				["img/score_place-sheet0.png", 2241, 0, 0, 157, 57, 1, 0.5031847357749939, 0.5087719559669495,[],[-0.4076433181762695,-0.2456139624118805,-0.006369739770889282,-0.2631579637527466,0.4904462695121765,-0.4912280440330505,0.4904462695121765,-0.01754394173622131,0.4458602666854858,0.350877046585083,-0.006369739770889282,0.350877046585083,-0.4649681448936462,0.3859650492668152,-0.5031847357749939,-0.01754394173622131],0]
 			]
 			]
 		],
@@ -32315,7 +28921,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t98",
+		"t93",
 		cr.plugins_.Spritefont2,
 		false,
 		[],
@@ -32332,7 +28938,7 @@ cr.getProjectModel = function() { return [
 		null
 	]
 ,	[
-		"t99",
+		"t94",
 		cr.plugins_.Sprite,
 		false,
 		[],
@@ -32367,6 +28973,113 @@ cr.getProjectModel = function() { return [
 		false,
 		false,
 		6617732377537105,
+		[],
+		null
+	]
+,	[
+		"t95",
+		cr.plugins_.cjs,
+		false,
+		[],
+		0,
+		0,
+		null,
+		null,
+		[
+		],
+		true,
+		false,
+		1263190535993302,
+		[],
+		null
+	]
+,	[
+		"t96",
+		cr.plugins_.Sprite,
+		false,
+		[],
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			9860623587498931,
+			[
+				["img/sprite2-sheet0.png", 155, 0, 0, 250, 250, 1, 0, 0,[],[],4]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		6541136191043254,
+		[],
+		null
+	]
+,	[
+		"t97",
+		cr.plugins_.Sprite,
+		false,
+		[],
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			879042007929898,
+			[
+				["img/sprite2-sheet0.png", 155, 0, 0, 250, 250, 1, 0, 0,[],[],4]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		9137960665820075,
+		[],
+		null
+	]
+,	[
+		"t98",
+		cr.plugins_.Sprite,
+		false,
+		[],
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			8176179973608517,
+			[
+				["img/sprite2-sheet0.png", 155, 0, 0, 250, 250, 1, 0, 0,[],[],4]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		388869077290298,
 		[],
 		null
 	]
@@ -32486,7 +29199,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -32508,7 +29221,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -32529,7 +29242,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -32551,7 +29264,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -32574,7 +29287,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -32597,7 +29310,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -32620,7 +29333,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -32643,7 +29356,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -32663,7 +29376,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -32724,7 +29437,7 @@ cr.getProjectModel = function() { return [
 		[
 			[
 				null,
-				69,
+				67,
 				77,
 				[
 				],
@@ -32738,7 +29451,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				null,
-				74,
+				72,
 				64,
 				[
 				],
@@ -32811,7 +29524,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				32,
+				31,
 				29,
 				[
 				],
@@ -32826,7 +29539,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 959, 0, 470, 163, 0, 0, 1, 0.5, 0.5030674934387207, 0, 0, []],
-				31,
+				30,
 				30,
 				[
 				],
@@ -32865,7 +29578,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -32887,7 +29600,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -32908,7 +29621,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -32930,7 +29643,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -32953,7 +29666,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -32976,7 +29689,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -32999,7 +29712,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -33022,7 +29735,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -33042,7 +29755,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -33162,7 +29875,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[77, 0, 0, 480, 1136, 0, 0, 1, 0, 0, 0, 0, []],
-				41,
+				40,
 				31,
 				[
 				],
@@ -33175,7 +29888,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[316, 567, 0, 476, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				36,
+				35,
 				32,
 				[
 				],
@@ -33226,7 +29939,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[335, 800, 0, 255, 340, 0, -1.570796370506287, 1, 0.7058823704719544, 0.3529411852359772, 0, 0, []],
-				70,
+				68,
 				80,
 				[
 				],
@@ -33249,7 +29962,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[335, 648, 0, 255, 340, 0, -1.570796370506287, 1, 0.294117659330368, 0.3529411852359772, 0, 0, []],
-				71,
+				69,
 				81,
 				[
 				],
@@ -33290,7 +30003,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[646, -75, 0, 70, 650, 0, 1.570796370506287, 1, 0, 0, 0, 0, []],
-				52,
+				51,
 				33,
 				[
 				],
@@ -33303,7 +30016,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				38,
+				37,
 				36,
 				[
 				],
@@ -33318,7 +30031,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[282, -75, 0, 128, 188, 0, 0, 1, 0.5, 0.6276595592498779, 0, 0, []],
-				35,
+				34,
 				43,
 				[
 					[0]
@@ -33343,7 +30056,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[169, 877, 0, 202, 240, 0, 0, 1, 0.5, 0.5041666626930237, 0, 0, []],
-				37,
+				36,
 				46,
 				[
 				],
@@ -33365,7 +30078,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 569, 0, 640, 1136, 0, 0, 1, 0.5, 0.5008803009986877, 0, 0, []],
-				47,
+				46,
 				34,
 				[
 				],
@@ -33398,7 +30111,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				33,
+				32,
 				37,
 				[
 				],
@@ -33413,7 +30126,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[429, 40, 0, 53.84039306640625, 53.84039688110352, 0, 0, 1, 0.5249999761581421, 0.5249999761581421, 0, 0, []],
-				43,
+				42,
 				40,
 				[
 				],
@@ -33428,7 +30141,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 569, 0, 640, 1136, 0, 0, 1, 0.5, 0.5008803009986877, 0, 0, []],
-				45,
+				44,
 				50,
 				[
 				],
@@ -33443,7 +30156,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[557, 38, 0, 166, 76, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				44,
+				43,
 				39,
 				[
 				],
@@ -33464,7 +30177,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[240, 1211, 0, 76, 75, 0, 0, 1, 0.5, 0.4933333396911621, 0, 0, []],
-				39,
+				38,
 				42,
 				[
 					[0]
@@ -33488,7 +30201,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[445, 1194, 0, 67, 56, 0, 0, 1, 0.5074626803398132, 0.5, 0, 0, []],
-				40,
+				39,
 				47,
 				[
 				],
@@ -33503,7 +30216,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[540, 1199, 0, 44, 45, 0, 0, 1, 0.5, 0.5111111402511597, 0, 0, []],
-				40,
+				39,
 				48,
 				[
 				],
@@ -33518,7 +30231,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[353, 1197, 0, 42, 42, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				42,
+				41,
 				49,
 				[
 				],
@@ -33533,7 +30246,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[143, 1213, 0, 100, 100, 0, 0, 1, 0.5199999809265137, 0.5199999809265137, 0, 0, []],
-				34,
+				33,
 				41,
 				[
 					[0],
@@ -33566,7 +30279,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320.1334533691406, 1066.00244140625, 0, 640, 140, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				57,
+				55,
 				25,
 				[
 				],
@@ -33581,7 +30294,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320.1334533691406, 1066.00244140625, 0, 640, 140, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				58,
+				56,
 				51,
 				[
 				],
@@ -33596,7 +30309,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[151.1334381103516, 1034.00244140625, 0, 200, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				46,
+				45,
 				54,
 				[
 				],
@@ -33619,7 +30332,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[577.1333618164063, 1025.00244140625, 0, 63.2174072265625, 40, 0, 0, 1, 0, 0, 0, 0, []],
-				48,
+				47,
 				52,
 				[
 				],
@@ -33642,7 +30355,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[610.1333618164063, 1083.00244140625, 0, 29.4691162109375, 40, 0, 0, 1, 0, 0, 0, 0, []],
-				51,
+				50,
 				53,
 				[
 				],
@@ -33665,7 +30378,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[465, 387, 0, 81, 81, 0, 0, 1, 0.5061728358268738, 0.5061728358268738, 0, 0, []],
-				50,
+				49,
 				35,
 				[
 				],
@@ -33698,7 +30411,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -33720,7 +30433,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -33741,7 +30454,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -33763,7 +30476,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -33786,7 +30499,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -33809,7 +30522,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -33832,7 +30545,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -33855,7 +30568,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -33875,7 +30588,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -33994,8 +30707,53 @@ cr.getProjectModel = function() { return [
 			0,
 			[
 			[
-				[320, 681, 0, 640, 65, 0, 0, 1, 0.5, 0.5076923370361328, 0, 0, []],
-				66,
+				[30, 475, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				98,
+				88,
+				[
+				],
+				[
+				],
+				[
+					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[30, 395, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				97,
+				87,
+				[
+				],
+				[
+				],
+				[
+					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[30, 315, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				96,
+				116,
+				[
+				],
+				[
+				],
+				[
+					0,
+					"Default",
+					0,
+					1
+				]
+			]
+,			[
+				[320, 646, 0, 640, 65, 0, 0, 1, 0.5, 0.5076923370361328, 0, 0, []],
+				64,
 				67,
 				[
 				],
@@ -34009,8 +30767,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[324, 1011, 0, 579, 163, 0, 0, 1, 0.5008635520935059, 0.5030674934387207, 0, 0, []],
-				56,
+				[324, 1029, 0, 579, 163, 0, 0, 1, 0.5008635520935059, 0.5030674934387207, 0, 0, []],
+				54,
 				59,
 				[
 				],
@@ -34030,8 +30788,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[320, 316, 0, 640, 55, 0, 0, 1, 0.5, 0.5090909004211426, 0, 0, []],
-				60,
+				[320, 281, 0, 640, 55, 0, 0, 1, 0.5, 0.5090909004211426, 0, 0, []],
+				58,
 				65,
 				[
 				],
@@ -34045,8 +30803,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[320, 119, 0, 640, 95, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
-				61,
+				[311, 82, 0, 503, 75, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
+				59,
 				66,
 				[
 				],
@@ -34060,8 +30818,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[320, 188, 0, 640, 51, 0, 0, 1, 0.5, 0.5098039507865906, 0, 0, []],
-				62,
+				[320, 145, 0, 640, 51, 0, 0, 1, 0.5, 0.5098039507865906, 0, 0, []],
+				60,
 				68,
 				[
 				],
@@ -34075,8 +30833,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[321, 252, 0, 640, 60, 0, 0, 1, 0.5015624761581421, 0.5, 0, 0, []],
-				65,
+				[321, 212, 0, 640, 60, 0, 0, 1, 0.5015624761581421, 0.5, 0, 0, []],
+				63,
 				61,
 				[
 				],
@@ -34096,8 +30854,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[190, 80, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				46,
+				[320, 45, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
+				45,
 				73,
 				[
 				],
@@ -34107,7 +30865,7 @@ cr.getProjectModel = function() { return [
 					20,
 					66,
 					"0123456789",
-					"Text",
+					"10000",
 					1,
 					0,
 					0,
@@ -34119,7 +30877,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[320, 620, 0, 640, 65, 0, 0, 1, 0.5015624761581421, 0.5076923370361328, 0, 0, []],
+				[320, 585, 0, 640, 65, 0, 0, 1, 0.5015624761581421, 0.5076923370361328, 0, 0, []],
 				4,
 				72,
 				[
@@ -34140,8 +30898,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[446.72705078125, 682.9325561523438, 0, 62, 54, 0, 0, 1, 0.5, 0.5185185074806213, 0, 0, []],
-				72,
+				[446.72705078125, 647.9325561523438, 0, 62, 54, 0, 0, 1, 0.5, 0.5185185074806213, 0, 0, []],
+				70,
 				86,
 				[
 					[1]
@@ -34162,52 +30920,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[31, 349, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				73,
-				87,
-				[
-				],
-				[
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[31, 432, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				73,
-				88,
-				[
-				],
-				[
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[31, 517, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
-				73,
-				89,
-				[
-				],
-				[
-				],
-				[
-					0,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[31, 349, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				[30, 315, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
 				0,
 				63,
 				[
@@ -34223,12 +30936,12 @@ cr.getProjectModel = function() { return [
 					0,
 					0,
 					0,
-					0,
+					1,
 					""
 				]
 			]
 ,			[
-				[31, 432, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				[30, 395, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
 				1,
 				62,
 				[
@@ -34244,12 +30957,12 @@ cr.getProjectModel = function() { return [
 					0,
 					0,
 					0,
-					0,
+					1,
 					""
 				]
 			]
 ,			[
-				[31, 517, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
+				[30, 475, 0, 580, 55, 0, 0, 1, 0, 0, 0, 0, []],
 				2,
 				71,
 				[
@@ -34265,12 +30978,12 @@ cr.getProjectModel = function() { return [
 					0,
 					0,
 					0,
-					0,
+					1,
 					""
 				]
 			]
 ,			[
-				[-313, 595, 0, 230, 45, 0, 0, 1, 0, 0, 0, 0, []],
+				[34, 564, 0, 230, 45, 0, 0, 1, 0, 0, 0, 0, []],
 				3,
 				74,
 				[
@@ -34285,8 +30998,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[306, 621, 0, 52, 52, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				82,
+				[306, 586, 0, 52, 52, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				80,
 				90,
 				[
 				],
@@ -34302,8 +31015,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[330, 892, 0, 386, 82, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				86,
+				[330, 857, 0, 386, 82, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				83,
 				99,
 				[
 				],
@@ -34317,8 +31030,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[335, 775, 0, 585, 34, 0, 0, 1, 0.5008547306060791, 0.5, 0, 0, []],
-				87,
+				[335, 740, 0, 585, 34, 0, 0, 1, 0.5008547306060791, 0.5, 0, 0, []],
+				84,
 				100,
 				[
 				],
@@ -34332,8 +31045,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[320, 732, 0, 640, 50, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				63,
+				[320, 697, 0, 640, 50, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				61,
 				69,
 				[
 				],
@@ -34347,8 +31060,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[325, 888, 0, 579, 189, 0, 0, 1, 0.5008635520935059, 0.5026454925537109, 0, 0, []],
-				59,
+				[325, 853, 0, 579, 189, 0, 0, 1, 0.5008635520935059, 0.5026454925537109, 0, 0, []],
+				57,
 				60,
 				[
 				],
@@ -34368,8 +31081,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[324, 51, 0, 483.8216552734375, 41, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				93,
+				[325.5693359375, -93.52395629882813, 0, 483.8216552734375, 41, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				88,
 				106,
 				[
 				],
@@ -34383,44 +31096,6 @@ cr.getProjectModel = function() { return [
 					1,
 					0,
 					1,
-					0,
-					0
-				]
-			]
-,			[
-				[391, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
-				97,
-				115,
-				[
-				],
-				[
-				],
-				[
-					1,
-					"Default",
-					0,
-					1
-				]
-			]
-,			[
-				[486, 72, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				98,
-				116,
-				[
-				],
-				[
-				],
-				[
-					16,
-					16,
-					"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:?!-_~#\"'&()[]|`\\/@°+=*$£€<>",
-					"Text",
-					1,
-					0,
-					0,
-					0,
-					0,
-					0,
 					0,
 					0
 				]
@@ -34445,7 +31120,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -34467,7 +31142,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -34488,7 +31163,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -34510,7 +31185,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -34533,7 +31208,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -34556,7 +31231,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -34579,7 +31254,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -34602,7 +31277,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -34622,7 +31297,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -34681,6 +31356,18 @@ cr.getProjectModel = function() { return [
 		]
 		],
 		[
+			[
+				null,
+				95,
+				115,
+				[
+				],
+				[
+				],
+				[
+					"script.js"
+				]
+			]
 		],
 		[]
 	]
@@ -34742,7 +31429,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				55,
+				53,
 				57,
 				[
 				],
@@ -34757,7 +31444,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[323, 686, 0, 579, 163, 0, 0, 1, 0.5008635520935059, 0.5030674934387207, 0, 0, []],
-				56,
+				54,
 				58,
 				[
 				],
@@ -34777,8 +31464,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[321, 115, 0, 640, 95, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
-				61,
+				[179, 113, 0, 503, 75, 0, 0, 1, 0.5, 0.5052631497383118, 0, 0, []],
+				59,
 				112,
 				[
 				],
@@ -34793,7 +31480,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[191, 76, 0, 124, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				46,
+				45,
 				113,
 				[
 				],
@@ -34803,7 +31490,7 @@ cr.getProjectModel = function() { return [
 					20,
 					66,
 					"0123456789",
-					"Text",
+					"10000",
 					1,
 					0,
 					0,
@@ -34816,7 +31503,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[485, 76, 0, 149, 84, 0, 0, 1, 0, 0, 0, 0, []],
-				98,
+				93,
 				117,
 				[
 				],
@@ -34826,7 +31513,7 @@ cr.getProjectModel = function() { return [
 					20,
 					66,
 					"0123456789",
-					"Text",
+					"10",
 					1,
 					0,
 					0,
@@ -34838,8 +31525,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[391, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
-				97,
+				[401, 117, 0, 157, 57, 0, 0, 1, 0.5031847357749939, 0.5087719559669495, 0, 0, []],
+				92,
 				118,
 				[
 				],
@@ -34872,7 +31559,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -34894,7 +31581,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -34915,7 +31602,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -34937,7 +31624,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -34960,7 +31647,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -34983,7 +31670,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -35006,7 +31693,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -35029,7 +31716,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -35049,7 +31736,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -35169,7 +31856,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				67,
+				65,
 				76,
 				[
 				],
@@ -35184,7 +31871,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[325, 617, 0, 220, 19, 0, 0, 1, 0.5, 0.5263158082962036, 0, 0, []],
-				99,
+				94,
 				120,
 				[
 				],
@@ -35285,7 +31972,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-221, 1062, 0, 120, 80, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				84,
+				82,
 				94,
 				[
 				],
@@ -35345,7 +32032,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 572, 0, 583, 96, 0, 0, 1, 0.4939965605735779, 4.927083492279053, 0, 0, []],
-				68,
+				66,
 				79,
 				[
 				],
@@ -35360,7 +32047,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-20, 167, 0, 203, 306, 0, 0, 1, 1.315270900726318, 0.9640522599220276, 0, 0, []],
-				92,
+				87,
 				105,
 				[
 				],
@@ -35408,7 +32095,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -35430,7 +32117,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -35451,7 +32138,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -35473,7 +32160,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -35496,7 +32183,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -35519,7 +32206,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -35542,7 +32229,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -35565,7 +32252,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -35585,7 +32272,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -35705,7 +32392,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				67,
+				65,
 				75,
 				[
 				],
@@ -35720,7 +32407,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 151, 0, 640, 100, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				75,
+				73,
 				78,
 				[
 				],
@@ -35735,7 +32422,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[316, 569, 0, 270, 406, 0, 0, 1, 0.4629629552364349, 0.7290640473365784, 0, 0, []],
-				91,
+				86,
 				104,
 				[
 				],
@@ -35749,7 +32436,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[328.4990234375, 471.730712890625, 0, 281.0225219726563, 411.4972534179688, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[328.4990234375, 471.730712890625, 0, 281, 411, 0, 0, 1, 0.5, 0.5, 0, 0, []],
 				13,
 				114,
 				[
@@ -35767,7 +32454,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[320, 568, 0, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				76,
+				74,
 				91,
 				[
 				],
@@ -35782,7 +32469,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[321, 619, 0, 531, 79, 0, 0, 1, 0.5009416341781616, 0.5063291192054749, 0, 0, []],
-				94,
+				89,
 				107,
 				[
 				],
@@ -35836,8 +32523,8 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[323, 472, 0, 220, 19, 0, 0, 1, 0.5, 0.5263158082962036, 0, 0, []],
-				99,
+				[330, 472, 0, 220, 19, 0, 0, 1, 0.5, 0.5263158082962036, 0, 0, []],
+				94,
 				119,
 				[
 				],
@@ -35870,7 +32557,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -35892,7 +32579,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -35913,7 +32600,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -35935,7 +32622,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -35958,7 +32645,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -35981,7 +32668,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -36004,7 +32691,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -36027,7 +32714,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -36047,7 +32734,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -36108,7 +32795,7 @@ cr.getProjectModel = function() { return [
 		[
 			[
 				null,
-				78,
+				76,
 				93,
 				[
 				],
@@ -36119,7 +32806,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				null,
-				95,
+				90,
 				108,
 				[
 				],
@@ -36192,7 +32879,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 568, 5.99999978589949e-008, 640, 1136, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				30,
+				29,
 				38,
 				[
 				],
@@ -36225,7 +32912,7 @@ cr.getProjectModel = function() { return [
 			[
 			[
 				[320, 567, 0, 800, 1134, 0, 0, 0, 0.5, 0.5, 0, 0, []],
-				25,
+				24,
 				23,
 				[
 					[0]
@@ -36247,7 +32934,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-250, 0, 0, 500, 749, 0, 0, 1, 0.5, 0, 0, 0, []],
-				24,
+				23,
 				22,
 				[
 				],
@@ -36268,7 +32955,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[41, 46, 0, 81, 81, 0, 0, 1, 0.5185185074806213, 0.5555555820465088, 0, 0, []],
-				23,
+				22,
 				20,
 				[
 					[0]
@@ -36290,7 +32977,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 589, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				26,
+				25,
 				26,
 				[
 				],
@@ -36313,7 +33000,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 286, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				27,
+				26,
 				27,
 				[
 				],
@@ -36336,7 +33023,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 146, 0, 360, 124, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				28,
+				27,
 				28,
 				[
 				],
@@ -36359,7 +33046,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 437, 0, 360, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				29,
+				28,
 				24,
 				[
 				],
@@ -36382,7 +33069,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[13, 1125, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, []],
-				83,
+				81,
 				96,
 				[
 				],
@@ -36402,7 +33089,7 @@ cr.getProjectModel = function() { return [
 			]
 ,			[
 				[-315, 743, 0, 369, 128, 0, 0, 1, 0.501354992389679, 0.5, 0, 0, []],
-				88,
+				85,
 				101,
 				[
 				],
@@ -36495,7 +33182,7 @@ cr.getProjectModel = function() { return [
 			],
 			[
 			[
-				81,
+				79,
 				cr.plugins_.Function.prototype.acts.CallFunction,
 				null,
 				8773839329527488,
@@ -36551,7 +33238,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				28,
+				27,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				537193573644732,
@@ -36746,7 +33433,7 @@ false,true,7057388441575477,false
 			],
 			[
 			[
-				83,
+				81,
 				cr.plugins_.Text.prototype.acts.SetWebFont,
 				null,
 				3116196214776381,
@@ -36789,7 +33476,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				23,
+				22,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				6650968964458143,
@@ -36826,7 +33513,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				28,
+				27,
 				cr.behaviors.Pin.prototype.acts.Pin,
 				"Pin",
 				9963230018803173,
@@ -36834,41 +33521,7 @@ false,true,7057388441575477,false
 				,[
 				[
 					4,
-					24
-				]
-,				[
-					3,
-					1
-				]
-				]
-			]
-,			[
-				27,
-				cr.behaviors.Pin.prototype.acts.Pin,
-				"Pin",
-				7862922776105042,
-				false
-				,[
-				[
-					4,
-					24
-				]
-,				[
-					3,
-					1
-				]
-				]
-			]
-,			[
-				29,
-				cr.behaviors.Pin.prototype.acts.Pin,
-				"Pin",
-				4730466560763803,
-				false
-				,[
-				[
-					4,
-					24
+					23
 				]
 ,				[
 					3,
@@ -36880,12 +33533,12 @@ false,true,7057388441575477,false
 				26,
 				cr.behaviors.Pin.prototype.acts.Pin,
 				"Pin",
-				3514060275176519,
+				7862922776105042,
 				false
 				,[
 				[
 					4,
-					24
+					23
 				]
 ,				[
 					3,
@@ -36895,6 +33548,40 @@ false,true,7057388441575477,false
 			]
 ,			[
 				28,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin",
+				4730466560763803,
+				false
+				,[
+				[
+					4,
+					23
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				25,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin",
+				3514060275176519,
+				false
+				,[
+				[
+					4,
+					23
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				27,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				1836219653246591,
@@ -36931,7 +33618,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				27,
+				26,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				7746940357569592,
@@ -36968,7 +33655,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				29,
+				28,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				5501316709403365,
@@ -37005,7 +33692,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				26,
+				25,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				7750735429061067,
@@ -37042,7 +33729,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				23,
+				22,
 				cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 				null,
 				5899754659349483,
@@ -37059,7 +33746,7 @@ false,true,7057388441575477,false
 				]
 			]
 ,			[
-				54,
+				52,
 				cr.plugins_.Audio.prototype.acts.StopAll,
 				null,
 				5976311541887533,
@@ -37105,7 +33792,7 @@ false,true,7057388441575477,false
 				],
 				[
 				[
-					88,
+					85,
 					cr.behaviors.Pin.prototype.acts.Pin,
 					"Pin",
 					4785318724393712,
@@ -37113,7 +33800,7 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						24
+						23
 					]
 ,					[
 						3,
@@ -37122,7 +33809,7 @@ false,true,7057388441575477,false
 					]
 				]
 ,				[
-					88,
+					85,
 					cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 					"Button",
 					6587289961849237,
@@ -37159,7 +33846,7 @@ false,true,7057388441575477,false
 					]
 				]
 ,				[
-					24,
+					23,
 					cr.plugins_.Sprite.prototype.acts.SetAnim,
 					null,
 					193258429552213,
@@ -37201,7 +33888,7 @@ false,true,7057388441575477,false
 				],
 				[
 				[
-					24,
+					23,
 					cr.plugins_.Sprite.prototype.acts.SetAnim,
 					null,
 					2482008005426841,
@@ -37995,14 +34682,14 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						23
+						22
 					]
 					]
 				]
 				],
 				[
 				[
-					23,
+					22,
 					cr.plugins_.Sprite.prototype.acts.ToggleBoolInstanceVar,
 					null,
 					8019443003532471,
@@ -38036,21 +34723,25 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						24
+						23
 					]
 					]
 				]
 				],
 				[
 				[
-					23,
-					cr.plugins_.Sprite.prototype.acts.ToggleBoolInstanceVar,
+					22,
+					cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 					null,
-					7287229005095122,
+					459991714000465,
 					false
 					,[
 					[
 						10,
+						0
+					]
+,					[
+						3,
 						0
 					]
 					]
@@ -38065,7 +34756,7 @@ false,true,7057388441575477,false
 				130523035688108,
 				[
 				[
-					23,
+					22,
 					cr.plugins_.Sprite.prototype.cnds.IsBoolInstanceVarSet,
 					null,
 					0,
@@ -38144,14 +34835,14 @@ false,true,7057388441575477,false
 						,[
 						[
 							4,
-							25
+							24
 						]
 						]
 					]
 					],
 					[
 					[
-						23,
+						22,
 						cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 						null,
 						8954394613911061,
@@ -38177,7 +34868,7 @@ false,true,7057388441575477,false
 					1183385333562844,
 					[
 					[
-						24,
+						23,
 						cr.plugins_.Sprite.prototype.cnds.CompareX,
 						null,
 						0,
@@ -38203,7 +34894,7 @@ false,true,7057388441575477,false
 					],
 					[
 					[
-						24,
+						23,
 						cr.plugins_.Sprite.prototype.acts.SetX,
 						null,
 						2223607514161419,
@@ -38215,7 +34906,7 @@ false,true,7057388441575477,false
 								4,
 								[
 									20,
-									24,
+									23,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -38229,7 +34920,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 						null,
 						5972782635779316,
@@ -38246,7 +34937,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.SetOpacity,
 						null,
 						9971641168529389,
@@ -38262,7 +34953,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.MoveToBottom,
 						null,
 						6032043429857502,
@@ -38341,7 +35032,7 @@ false,true,7057388441575477,false
 					3580827281574244,
 					[
 					[
-						24,
+						23,
 						cr.plugins_.Sprite.prototype.cnds.CompareX,
 						null,
 						0,
@@ -38367,7 +35058,7 @@ false,true,7057388441575477,false
 					],
 					[
 					[
-						24,
+						23,
 						cr.plugins_.Sprite.prototype.acts.SetX,
 						null,
 						2874327221937578,
@@ -38379,7 +35070,7 @@ false,true,7057388441575477,false
 								5,
 								[
 									20,
-									24,
+									23,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -38393,7 +35084,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 						null,
 						5115374807682126,
@@ -38410,7 +35101,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.SetOpacity,
 						null,
 						3317956973283496,
@@ -38426,7 +35117,7 @@ false,true,7057388441575477,false
 						]
 					]
 ,					[
-						25,
+						24,
 						cr.plugins_.Sprite.prototype.acts.MoveToBottom,
 						null,
 						5794582548471669,
@@ -38456,14 +35147,14 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						28
+						27
 					]
 					]
 				]
 				],
 				[
 				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					7305420386092416,
@@ -38543,14 +35234,14 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						27
+						26
 					]
 					]
 				]
 				],
 				[
 				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					843920598182791,
@@ -38630,14 +35321,14 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						29
+						28
 					]
 					]
 				]
 				],
 				[
 				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					1580028022735935,
@@ -38717,14 +35408,14 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						26
+						25
 					]
 					]
 				]
 				],
 				[
 				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					7095033674389948,
@@ -38804,7 +35495,7 @@ false,true,7057388441575477,false
 					,[
 					[
 						4,
-						88
+						85
 					]
 					]
 				]
@@ -38859,7 +35550,7 @@ false,true,7057388441575477,false
 					]
 				]
 ,				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					4186081266118972,
@@ -38909,7 +35600,7 @@ false,true,7057388441575477,false
 			4966736234879247,
 			[
 			[
-				81,
+				79,
 				cr.plugins_.Function.prototype.cnds.OnFunction,
 				null,
 				2,
@@ -38970,7 +35661,7 @@ false,true,7057388441575477,false
 				],
 				[
 				[
-					64,
+					62,
 					cr.plugins_.AJAX.prototype.acts.Request,
 					null,
 					2974888952922288,
@@ -39152,7 +35843,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				31,
+				30,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				809653683006548,
@@ -39210,7 +35901,7 @@ false,true,7978056896885376,false
 				,[
 				[
 					4,
-					31
+					30
 				]
 				]
 			]
@@ -39245,7 +35936,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.acts.Request,
 				null,
 				93201872892256,
@@ -39309,7 +36000,7 @@ false,true,7978056896885376,false
 			9082860728843126,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -39345,7 +36036,7 @@ false,true,7978056896885376,false
 					7,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -39393,7 +36084,7 @@ false,true,7978056896885376,false
 				],
 				[
 				[
-					31,
+					30,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1583329972731451,
@@ -39479,7 +36170,7 @@ false,true,7978056896885376,false
 			1252176254482839,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnError,
 				null,
 				1,
@@ -39501,7 +36192,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				31,
+				30,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				7385779670795937,
@@ -39540,7 +36231,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				26,
+				25,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				765613149264971,
@@ -39609,7 +36300,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				56,
+				54,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				553978218313965,
@@ -39667,7 +36358,7 @@ false,true,7978056896885376,false
 				,[
 				[
 					4,
-					56
+					54
 				]
 				]
 			]
@@ -39809,7 +36500,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				46,
+				45,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				1059838518711359,
@@ -39825,7 +36516,7 @@ false,true,7978056896885376,false
 				]
 			]
 ,			[
-				97,
+				92,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				3146927383480646,
@@ -39838,7 +36529,7 @@ false,true,7978056896885376,false
 				]
 			]
 ,			[
-				98,
+				93,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				3030912349133255,
@@ -39913,7 +36604,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.acts.Request,
 				null,
 				8950127347130052,
@@ -39977,7 +36668,7 @@ false,true,7978056896885376,false
 			8215822924114734,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -39999,7 +36690,7 @@ false,true,7978056896885376,false
 			],
 			[
 			[
-				97,
+				92,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				604517297150346,
@@ -40026,7 +36717,7 @@ false,true,7978056896885376,false
 					7,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -40035,7 +36726,7 @@ false,true,7978056896885376,false
 				]
 			]
 ,			[
-				98,
+				93,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				1436103098869477,
@@ -40118,7 +36809,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				56,
+				54,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				6481689115132651,
@@ -40155,7 +36846,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				59,
+				57,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				9297813220278386,
@@ -40192,7 +36883,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				65,
+				63,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				5839574400524214,
@@ -40229,7 +36920,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				46,
+				45,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				4797642167531268,
@@ -40766,14 +37457,14 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				78,
+				76,
 				cr.plugins_.Dictionary.prototype.acts.Clear,
 				null,
 				5416219138121815,
 				false
 			]
 ,			[
-				87,
+				84,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				7738770228894355,
@@ -40948,7 +37639,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				93,
+				88,
 				cr.plugins_.Text.prototype.acts.SetVisible,
 				null,
 				6543433511130692,
@@ -41003,7 +37694,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				93,
+				88,
 				cr.plugins_.Text.prototype.acts.SetVisible,
 				null,
 				6606023400701071,
@@ -41016,7 +37707,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				93,
+				88,
 				cr.plugins_.Text.prototype.acts.SetText,
 				null,
 				1641380253276552,
@@ -41041,7 +37732,7 @@ false,false,1262728931712447,false
 			4333828258171585,
 			[
 			[
-				72,
+				70,
 				cr.plugins_.Sprite.prototype.cnds.IsBoolInstanceVarSet,
 				null,
 				0,
@@ -41080,7 +37771,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				93,
+				88,
 				cr.plugins_.Text.prototype.acts.SetVisible,
 				null,
 				5903150506310989,
@@ -41093,7 +37784,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				93,
+				88,
 				cr.plugins_.Text.prototype.acts.SetText,
 				null,
 				2957804250781429,
@@ -41130,7 +37821,7 @@ false,false,1262728931712447,false
 				,[
 				[
 					4,
-					56
+					54
 				]
 				]
 			]
@@ -41205,7 +37896,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				87,
+				84,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				7891515224827668,
@@ -41239,7 +37930,7 @@ false,false,1262728931712447,false
 				,[
 				[
 					4,
-					65
+					63
 				]
 				]
 			]
@@ -41268,17 +37959,17 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					90,
-					cr.plugins_.FBComplete.prototype.acts.UserLoginPopUp,
+					95,
+					cr.plugins_.cjs.prototype.acts.ExecuteJS,
 					null,
-					4014516668191978,
+					366281352265881,
 					false
 					,[
 					[
 						1,
 						[
 							2,
-							"email"
+							"fblogin();"
 						]
 					]
 					]
@@ -41323,7 +38014,7 @@ false,false,1262728931712447,false
 					],
 					[
 					[
-						65,
+						63,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						677576474784561,
@@ -41336,7 +38027,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						59,
+						57,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						7389614686347949,
@@ -41349,7 +38040,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						56,
+						54,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						6299686771913591,
@@ -41362,7 +38053,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						86,
+						83,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						2078413246463245,
@@ -41375,7 +38066,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						87,
+						84,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						846282668781066,
@@ -41396,21 +38087,10 @@ false,false,1262728931712447,false
 					null,
 					3718986315951487,
 					[
-					[
-						90,
-						cr.plugins_.FBComplete.prototype.cnds.IsLoggedIn,
-						null,
-						0,
-						false,
-						false,
-						false,
-						171858053464938,
-						false
-					]
 					],
 					[
 					[
-						78,
+						76,
 						cr.plugins_.Dictionary.prototype.acts.AddKey,
 						null,
 						2611165518186723,
@@ -41426,17 +38106,14 @@ false,false,1262728931712447,false
 ,						[
 							7,
 							[
-								20,
-								90,
-								cr.plugins_.FBComplete.prototype.exps.UserAccessToken,
-								true,
-								null
+								2,
+								"aici vine facebok token"
 							]
 						]
 						]
 					]
 ,					[
-						78,
+						76,
 						cr.plugins_.Dictionary.prototype.acts.AddKey,
 						null,
 						1813375088459945,
@@ -41459,7 +38136,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.acts.Post,
 						null,
 						3961008869792619,
@@ -41483,7 +38160,7 @@ false,false,1262728931712447,false
 							1,
 							[
 								20,
-								78,
+								76,
 								cr.plugins_.Dictionary.prototype.exps.AsJSON,
 								true,
 								null
@@ -41499,7 +38176,7 @@ false,false,1262728931712447,false
 						]
 					]
 ,					[
-						78,
+						76,
 						cr.plugins_.Dictionary.prototype.acts.Clear,
 						null,
 						741260873635108,
@@ -41538,17 +38215,17 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				22,
-				cr.plugins_.Browser.prototype.acts.ExecJs,
+				95,
+				cr.plugins_.cjs.prototype.acts.ExecuteJS,
 				null,
-				4717869646454339,
+				1105156830345488,
 				false
 				,[
 				[
 					1,
 					[
 						2,
-						"document.getElementById('photoInput').click()"
+						"document.getElementById('photoInput').click();"
 					]
 				]
 				]
@@ -41576,7 +38253,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				82,
+				80,
 				cr.plugins_.Sprite.prototype.acts.LoadURL,
 				null,
 				8528509576300647,
@@ -41605,7 +38282,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				82,
+				80,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				7016978536731388,
@@ -41659,7 +38336,7 @@ false,false,1262728931712447,false
 				,[
 				[
 					4,
-					72
+					70
 				]
 				]
 			]
@@ -41675,7 +38352,7 @@ false,false,1262728931712447,false
 				1168811450982377,
 				[
 				[
-					72,
+					70,
 					cr.plugins_.Sprite.prototype.cnds.IsBoolInstanceVarSet,
 					null,
 					0,
@@ -41694,7 +38371,7 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					72,
+					70,
 					cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 					null,
 					1794267581772729,
@@ -41733,7 +38410,7 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					72,
+					70,
 					cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 					null,
 					9666493438716407,
@@ -41761,7 +38438,7 @@ false,false,1262728931712447,false
 			2726163646440152,
 			[
 			[
-				72,
+				70,
 				cr.plugins_.Sprite.prototype.cnds.IsBoolInstanceVarSet,
 				null,
 				0,
@@ -41780,7 +38457,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				72,
+				70,
 				cr.plugins_.Sprite.prototype.acts.SetAnim,
 				null,
 				8005518007410359,
@@ -41822,7 +38499,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				72,
+				70,
 				cr.plugins_.Sprite.prototype.acts.SetAnim,
 				null,
 				5308347725584991,
@@ -41863,7 +38540,7 @@ false,false,1262728931712447,false
 				,[
 				[
 					4,
-					59
+					57
 				]
 				]
 			]
@@ -41909,7 +38586,7 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					59,
+					57,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					8525673352069275,
@@ -41922,7 +38599,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					65,
+					63,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					9368677099072185,
@@ -41935,7 +38612,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					56,
+					54,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					6411961981401558,
@@ -41948,7 +38625,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					86,
+					83,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1830220919184552,
@@ -41961,7 +38638,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					87,
+					84,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					8626676113787699,
@@ -41974,7 +38651,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					78,
+					76,
 					cr.plugins_.Dictionary.prototype.acts.AddKey,
 					null,
 					1934398499294119,
@@ -42000,7 +38677,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					78,
+					76,
 					cr.plugins_.Dictionary.prototype.acts.AddKey,
 					null,
 					6601992719030178,
@@ -42026,7 +38703,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					78,
+					76,
 					cr.plugins_.Dictionary.prototype.acts.AddKey,
 					null,
 					6984912554302622,
@@ -42052,7 +38729,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					78,
+					76,
 					cr.plugins_.Dictionary.prototype.acts.AddKey,
 					null,
 					2528715022465834,
@@ -42069,7 +38746,7 @@ false,false,1262728931712447,false
 						7,
 						[
 							22,
-							82,
+							80,
 							"ExtractImage",
 							cr.behaviors.extractImage.prototype.exps.currentImage,
 							true,
@@ -42079,7 +38756,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					64,
+					62,
 					cr.plugins_.AJAX.prototype.acts.Post,
 					null,
 					6453022336863274,
@@ -42117,7 +38794,7 @@ false,false,1262728931712447,false
 						1,
 						[
 							20,
-							78,
+							76,
 							cr.plugins_.Dictionary.prototype.exps.AsJSON,
 							true,
 							null
@@ -42133,11 +38810,46 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					78,
+					76,
 					cr.plugins_.Dictionary.prototype.acts.Clear,
 					null,
 					7693943685483174,
 					false
+				]
+				]
+			]
+,			[
+				0,
+				null,
+				false,
+				null,
+				2579770795842948,
+				[
+				[
+					-1,
+					cr.system_object.prototype.cnds.Else,
+					null,
+					0,
+					false,
+					false,
+					false,
+					1571934664536029,
+					false
+				]
+				],
+				[
+				[
+					84,
+					cr.plugins_.Sprite.prototype.acts.SetVisible,
+					null,
+					8801191558377271,
+					false
+					,[
+					[
+						3,
+						1
+					]
+					]
 				]
 				]
 			]
@@ -42151,7 +38863,7 @@ false,false,1262728931712447,false
 			7194609268973953,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -42171,7 +38883,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -42207,7 +38919,7 @@ false,false,1262728931712447,false
 					7,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -42333,74 +39045,6 @@ false,false,1262728931712447,false
 					]
 					]
 				]
-,				[
-					97,
-					cr.plugins_.Sprite.prototype.acts.SetVisible,
-					null,
-					1566906004778371,
-					false
-					,[
-					[
-						3,
-						1
-					]
-					]
-				]
-,				[
-					64,
-					cr.plugins_.AJAX.prototype.acts.Request,
-					null,
-					5622412960371574,
-					false
-					,[
-					[
-						1,
-						[
-							2,
-							"UserPosition"
-						]
-					]
-,					[
-						1,
-						[
-							10,
-							[
-								23,
-								"REQUEST_SCORE_TOP_POSITION_URL"
-							]
-							,[
-								18,
-								[
-									13,
-									[
-										23,
-										"user_id"
-									]
-									,[
-										2,
-										""
-									]
-								]
-								,[
-									10,
-									[
-										2,
-										"/"
-									]
-									,[
-										23,
-										"user_id"
-									]
-								]
-								,[
-									2,
-									""
-								]
-							]
-						]
-					]
-					]
-				]
 				]
 			]
 ,			[
@@ -42424,7 +39068,7 @@ false,false,1262728931712447,false
 				],
 				[
 				[
-					87,
+					84,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					668586686619402,
@@ -42437,7 +39081,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					59,
+					57,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					4184638135914121,
@@ -42450,7 +39094,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					65,
+					63,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					2089222200856009,
@@ -42463,7 +39107,7 @@ false,false,1262728931712447,false
 					]
 				]
 ,				[
-					56,
+					54,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					5310708551383165,
@@ -42487,7 +39131,7 @@ false,false,1262728931712447,false
 			2141085647905811,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnError,
 				null,
 				1,
@@ -42507,7 +39151,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnError,
 				null,
 				1,
@@ -42529,7 +39173,7 @@ false,false,1262728931712447,false
 			],
 			[
 			[
-				87,
+				84,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				4033597866261105,
@@ -42542,7 +39186,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				59,
+				57,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				8618693771110145,
@@ -42555,7 +39199,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				65,
+				63,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				1819258490938665,
@@ -42568,7 +39212,7 @@ false,false,1262728931712447,false
 				]
 			]
 ,			[
-				56,
+				54,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				2469103494013159,
@@ -42577,89 +39221,6 @@ false,false,1262728931712447,false
 				[
 					3,
 					1
-				]
-				]
-			]
-			]
-		]
-,		[
-			0,
-			null,
-			false,
-			null,
-			3578886180471596,
-			[
-			[
-				64,
-				cr.plugins_.AJAX.prototype.cnds.OnComplete,
-				null,
-				1,
-				false,
-				false,
-				false,
-				7890334315579167,
-				false
-				,[
-				[
-					1,
-					[
-						2,
-						"UserPosition"
-					]
-				]
-				]
-			]
-			],
-			[
-			[
-				97,
-				cr.plugins_.Sprite.prototype.acts.SetVisible,
-				null,
-				489244455593606,
-				false
-				,[
-				[
-					3,
-					1
-				]
-				]
-			]
-,			[
-				-1,
-				cr.system_object.prototype.acts.SetVar,
-				null,
-				806987079981778,
-				false
-				,[
-				[
-					11,
-					"score_position"
-				]
-,				[
-					7,
-					[
-						20,
-						64,
-						cr.plugins_.AJAX.prototype.exps.LastData,
-						true,
-						null
-					]
-				]
-				]
-			]
-,			[
-				98,
-				cr.plugins_.Spritefont2.prototype.acts.SetText,
-				null,
-				5310688730900942,
-				false
-				,[
-				[
-					7,
-					[
-						23,
-						"score_position"
-					]
 				]
 				]
 			]
@@ -42780,7 +39341,7 @@ false,true,3989474741624965,false
 			],
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.acts.Request,
 				null,
 				5897106013127356,
@@ -42817,7 +39378,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				44,
+				43,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				4056473284715177,
@@ -42854,83 +39415,28 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				53,
-				cr.plugins_.MagiCam.prototype.acts.CreateLocalCamera,
-				null,
-				9759801758794847,
-				false
-				,[
-				[
-					1,
-					[
-						2,
-						"Main"
-					]
-				]
-,				[
-					0,
-					[
-						7,
-						[
-							19,
-							cr.system_object.prototype.exps.layoutwidth
-						]
-						,[
-							0,
-							2
-						]
-					]
-				]
-,				[
-					0,
-					[
-						7,
-						[
-							19,
-							cr.system_object.prototype.exps.layoutheight
-						]
-						,[
-							0,
-							2
-						]
-					]
-				]
-,				[
-					0,
-					[
-						0,
-						2
-					]
-				]
-,				[
-					3,
-					1
-				]
-				]
-			]
-,			[
-				35,
+				34,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				9044621250073451,
 				false
 			]
 ,			[
-				34,
+				33,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				8639931731919599,
 				false
 			]
 ,			[
-				39,
+				38,
 				cr.plugins_.Sprite.prototype.acts.Destroy,
 				null,
 				2383915669854874,
 				false
 			]
 ,			[
-				46,
+				45,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				7365032616653134,
@@ -42946,7 +39452,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				48,
+				47,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				8289004896259654,
@@ -42962,7 +39468,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				51,
+				50,
 				cr.plugins_.Spritefont2.prototype.acts.SetText,
 				null,
 				2375186125872797,
@@ -43127,7 +39633,7 @@ false,true,3989474741624965,false
 			9609665301016593,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -43189,7 +39695,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				47,
+				46,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				929178640450757,
@@ -43202,7 +39708,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				50,
+				49,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				6124924366585,
@@ -43215,7 +39721,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				54,
+				52,
 				cr.plugins_.Audio.prototype.acts.Preload,
 				null,
 				7658574030674869,
@@ -43228,7 +39734,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				54,
+				52,
 				cr.plugins_.Audio.prototype.acts.Preload,
 				null,
 				3055100341930362,
@@ -43241,7 +39747,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				54,
+				52,
 				cr.plugins_.Audio.prototype.acts.Play,
 				null,
 				2495813257611505,
@@ -43272,7 +39778,7 @@ false,true,3989474741624965,false
 				]
 			]
 ,			[
-				54,
+				52,
 				cr.plugins_.Audio.prototype.acts.Play,
 				null,
 				6732711371117495,
@@ -43317,7 +39823,7 @@ false,true,3989474741624965,false
 					7,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -43416,7 +39922,7 @@ false,true,3989474741624965,false
 			9548277482807932,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnError,
 				null,
 				1,
@@ -43438,7 +39944,7 @@ false,true,3989474741624965,false
 			],
 			[
 			[
-				81,
+				79,
 				cr.plugins_.Function.prototype.acts.CallFunction,
 				null,
 				8063852982151413,
@@ -43549,7 +40055,7 @@ false,true,3989474741624965,false
 					,[
 					[
 						4,
-						43
+						42
 					]
 					]
 				]
@@ -43615,7 +40121,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						43,
+						42,
 						cr.plugins_.Sprite.prototype.acts.SetAnim,
 						null,
 						4639558273549955,
@@ -43635,7 +40141,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						54,
+						52,
 						cr.plugins_.Audio.prototype.acts.SetMuted,
 						null,
 						3487375797090471,
@@ -43655,7 +40161,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						54,
+						52,
 						cr.plugins_.Audio.prototype.acts.Play,
 						null,
 						7980022207569961,
@@ -43728,7 +40234,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						43,
+						42,
 						cr.plugins_.Sprite.prototype.acts.SetAnim,
 						null,
 						5819944453336263,
@@ -43748,7 +40254,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						54,
+						52,
 						cr.plugins_.Audio.prototype.acts.SetMuted,
 						null,
 						4515622120693351,
@@ -43768,7 +40274,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						54,
+						52,
 						cr.plugins_.Audio.prototype.acts.StopAll,
 						null,
 						5050561078531335,
@@ -43935,7 +40441,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						34,
+						33,
 						cr.behaviors.Bullet.prototype.acts.SetSpeed,
 						"Bullet",
 						3085542045644007,
@@ -43951,7 +40457,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						39,
+						38,
 						cr.behaviors.Bullet.prototype.acts.SetSpeed,
 						"Bullet",
 						9773005136823396,
@@ -44063,7 +40569,7 @@ false,true,3989474741624965,false
 					],
 					[
 					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetY,
 						null,
 						2529214328716416,
@@ -44075,7 +40581,7 @@ false,true,3989474741624965,false
 								5,
 								[
 									20,
-									41,
+									40,
 									cr.plugins_.TiledBg.prototype.exps.Y,
 									false,
 									null
@@ -44096,7 +40602,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetHeight,
 						null,
 						8145677450847159,
@@ -44108,7 +40614,7 @@ false,true,3989474741624965,false
 								4,
 								[
 									20,
-									41,
+									40,
 									cr.plugins_.TiledBg.prototype.exps.Height,
 									false,
 									null
@@ -44151,7 +40657,7 @@ false,true,3989474741624965,false
 					],
 					[
 					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetY,
 						null,
 						76176468024681,
@@ -44163,7 +40669,7 @@ false,true,3989474741624965,false
 								5,
 								[
 									20,
-									41,
+									40,
 									cr.plugins_.TiledBg.prototype.exps.Y,
 									false,
 									null
@@ -44184,7 +40690,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetHeight,
 						null,
 						4289620553675272,
@@ -44196,7 +40702,7 @@ false,true,3989474741624965,false
 								4,
 								[
 									20,
-									41,
+									40,
 									cr.plugins_.TiledBg.prototype.exps.Height,
 									false,
 									null
@@ -44226,7 +40732,7 @@ false,true,3989474741624965,false
 					8840290661782775,
 					[
 					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.cnds.CompareX,
 						null,
 						0,
@@ -44252,7 +40758,7 @@ false,true,3989474741624965,false
 					],
 					[
 					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetY,
 						null,
 						8372090105232108,
@@ -44268,7 +40774,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						41,
+						40,
 						cr.plugins_.TiledBg.prototype.acts.SetHeight,
 						null,
 						7067139436972421,
@@ -44328,7 +40834,7 @@ false,true,3989474741624965,false
 				9838645952552637,
 				[
 				[
-					34,
+					33,
 					cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 					null,
 					0,
@@ -44379,14 +40885,14 @@ false,true,3989474741624965,false
 						,[
 						[
 							4,
-							34
+							33
 						]
 						]
 					]
 					],
 					[
 					[
-						34,
+						33,
 						cr.plugins_.Sprite.prototype.acts.SetAnim,
 						null,
 						9823374680250484,
@@ -44402,64 +40908,6 @@ false,true,3989474741624965,false
 ,						[
 							3,
 							1
-						]
-						]
-					]
-,					[
-						53,
-						cr.plugins_.MagiCam.prototype.acts.ShakeCamera,
-						null,
-						953396017197191,
-						false
-						,[
-						[
-							1,
-							[
-								2,
-								"Main"
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								100
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								100
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								1
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								1
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								0
-							]
-						]
-,						[
-							0,
-							[
-								1,
-								0.5
-							]
 						]
 						]
 					]
@@ -44491,7 +40939,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						48,
+						47,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						4009385144065893,
@@ -44507,7 +40955,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						46,
+						45,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						160556777233464,
@@ -44523,7 +40971,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						34,
+						33,
 						cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
 						null,
 						2864459689794828,
@@ -44582,7 +41030,7 @@ false,true,3989474741624965,false
 						],
 						[
 						[
-							54,
+							52,
 							cr.plugins_.Audio.prototype.acts.Play,
 							null,
 							9414736332633111,
@@ -44634,14 +41082,14 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 							]
 						]
 						],
 						[
 						[
-							35,
+							34,
 							cr.plugins_.Sprite.prototype.acts.Destroy,
 							null,
 							5052319179541195,
@@ -44661,7 +41109,7 @@ false,true,3989474741624965,false
 				2244352780366243,
 				[
 				[
-					39,
+					38,
 					cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 					null,
 					0,
@@ -44712,7 +41160,7 @@ false,true,3989474741624965,false
 						,[
 						[
 							4,
-							39
+							38
 						]
 						]
 					]
@@ -44739,7 +41187,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						39,
+						38,
 						cr.plugins_.Sprite.prototype.acts.SetAnim,
 						null,
 						1357715680083447,
@@ -44755,64 +41203,6 @@ false,true,3989474741624965,false
 ,						[
 							3,
 							1
-						]
-						]
-					]
-,					[
-						53,
-						cr.plugins_.MagiCam.prototype.acts.ShakeCamera,
-						null,
-						3950413428749574,
-						false
-						,[
-						[
-							1,
-							[
-								2,
-								"Main"
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								100
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								10
-							]
-						]
-,						[
-							0,
-							[
-								1,
-								0.05
-							]
-						]
-,						[
-							0,
-							[
-								1,
-								0.5
-							]
-						]
-,						[
-							0,
-							[
-								0,
-								0
-							]
-						]
-,						[
-							0,
-							[
-								1,
-								0.5
-							]
 						]
 						]
 					]
@@ -44844,7 +41234,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						48,
+						47,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						1749964392475599,
@@ -44860,7 +41250,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						46,
+						45,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						980501242306884,
@@ -44876,7 +41266,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						39,
+						38,
 						cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
 						null,
 						3874766884021656,
@@ -44896,7 +41286,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						37,
+						36,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						2934371414290494,
@@ -44909,7 +41299,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						37,
+						36,
 						cr.plugins_.Sprite.prototype.acts.SetOpacity,
 						null,
 						7284513251291815,
@@ -44925,7 +41315,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						42,
+						41,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						9709573050482069,
@@ -44938,7 +41328,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						45,
+						44,
 						cr.plugins_.Sprite.prototype.acts.SetVisible,
 						null,
 						7986473348686319,
@@ -44972,14 +41362,14 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 							]
 						]
 						],
 						[
 						[
-							35,
+							34,
 							cr.plugins_.Sprite.prototype.acts.Destroy,
 							null,
 							3123545515626739,
@@ -45025,7 +41415,7 @@ false,true,3989474741624965,false
 						],
 						[
 						[
-							54,
+							52,
 							cr.plugins_.Audio.prototype.acts.Play,
 							null,
 							4334981798341363,
@@ -45078,7 +41468,7 @@ false,true,3989474741624965,false
 						],
 						[
 						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.SetVisible,
 							null,
 							5328722617762109,
@@ -45091,7 +41481,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.SetVisible,
 							null,
 							9036320088250309,
@@ -45104,7 +41494,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 							"MoveTo",
 							5135289571282122,
@@ -45127,7 +41517,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 							"MoveTo",
 							7298752364943597,
@@ -45150,7 +41540,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.SetAnim,
 							null,
 							9542455001549886,
@@ -45170,7 +41560,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.SetAnim,
 							null,
 							5553927899946873,
@@ -45190,7 +41580,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							9365426928089226,
@@ -45206,7 +41596,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							39,
+							38,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							6546543291523441,
@@ -45231,7 +41621,7 @@ false,true,3989474741624965,false
 							5167756769930699,
 							[
 							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.cnds.IsBoolInstanceVarSet,
 								null,
 								0,
@@ -45248,7 +41638,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 								null,
 								0,
@@ -45278,14 +41668,14 @@ false,true,3989474741624965,false
 							],
 							[
 							[
-								34,
+								33,
 								cr.behaviors.Fade.prototype.acts.StartFade,
 								"Fade",
 								7548352741928902,
 								false
 							]
 ,							[
-								35,
+								34,
 								cr.behaviors.Fade.prototype.acts.StartFade,
 								"Fade",
 								3741560939828908,
@@ -45340,7 +41730,7 @@ false,true,3989474741624965,false
 				2724654790263486,
 				[
 				[
-					71,
+					69,
 					cr.plugins_.Sprite.prototype.cnds.OnAnimFinished,
 					null,
 					1,
@@ -45378,7 +41768,7 @@ false,true,3989474741624965,false
 					]
 				]
 ,				[
-					70,
+					68,
 					cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 					"MoveTo",
 					7504889796454649,
@@ -45401,7 +41791,7 @@ false,true,3989474741624965,false
 					]
 				]
 ,				[
-					70,
+					68,
 					cr.plugins_.Sprite.prototype.acts.SetAnim,
 					null,
 					3092867611089985,
@@ -45626,21 +42016,21 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								70,
+								68,
 								cr.plugins_.Sprite.prototype.acts.StopAnim,
 								null,
 								6396759532029144,
 								false
 							]
 ,							[
-								71,
+								69,
 								cr.plugins_.Sprite.prototype.acts.StopAnim,
 								null,
 								9116593824890402,
 								false
 							]
 ,							[
-								37,
+								36,
 								cr.behaviors.Fade.prototype.acts.StartFade,
 								"Fade",
 								1520551690397296,
@@ -45663,7 +42053,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								70,
+								68,
 								cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 								"MoveTo",
 								1794350810028472,
@@ -45673,7 +42063,7 @@ false,true,3989474741624965,false
 									0,
 									[
 										20,
-										70,
+										68,
 										cr.plugins_.Sprite.prototype.exps.X,
 										false,
 										null
@@ -45689,7 +42079,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								71,
+								69,
 								cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 								"MoveTo",
 								1205982257530612,
@@ -45699,7 +42089,7 @@ false,true,3989474741624965,false
 									0,
 									[
 										20,
-										71,
+										69,
 										cr.plugins_.Sprite.prototype.exps.X,
 										false,
 										null
@@ -45715,7 +42105,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								70,
+								68,
 								cr.plugins_.Sprite.prototype.acts.SetAnim,
 								null,
 								1916390795808717,
@@ -45735,7 +42125,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								71,
+								69,
 								cr.plugins_.Sprite.prototype.acts.SetAnim,
 								null,
 								6818467103019729,
@@ -45755,7 +42145,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								42,
+								41,
 								cr.plugins_.Sprite.prototype.acts.SetVisible,
 								null,
 								4925885132171548,
@@ -45768,7 +42158,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								45,
+								44,
 								cr.plugins_.Sprite.prototype.acts.SetVisible,
 								null,
 								9057912256227637,
@@ -45781,7 +42171,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								34,
+								33,
 								cr.behaviors.Bullet.prototype.acts.SetSpeed,
 								"Bullet",
 								3539142890129041,
@@ -45797,7 +42187,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								39,
+								38,
 								cr.behaviors.Bullet.prototype.acts.SetSpeed,
 								"Bullet",
 								5736920929256575,
@@ -45872,7 +42262,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								5,
@@ -45908,7 +42298,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetCurrentSpeed,
 							"MoveTo",
 							963780320904515,
@@ -45924,7 +42314,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 							"MoveTo",
 							5051535910196402,
@@ -45934,7 +42324,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -45957,7 +42347,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							8934959080257887,
@@ -45974,7 +42364,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetAngleOfMotion,
 							"Bullet",
 							9249741027689484,
@@ -45990,7 +42380,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							1379783937024143,
@@ -46014,7 +42404,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 ,							[
 								5,
@@ -46027,7 +42417,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -46037,7 +42427,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.Y,
 									false,
 									null
@@ -46046,7 +42436,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.behaviors.Pin.prototype.acts.Pin,
 							"Pin",
 							1396592571725031,
@@ -46054,7 +42444,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								3,
@@ -46063,7 +42453,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							432966051954266,
@@ -46116,14 +42506,14 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.MoveToBottom,
 							null,
 							9134151939639587,
 							false
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.SetAnim,
 							null,
 							2836365221274762,
@@ -46143,7 +42533,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.SetAnimFrame,
 							null,
 							5594585479246401,
@@ -46159,7 +42549,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							71,
+							69,
 							cr.plugins_.Sprite.prototype.acts.SetAnimSpeed,
 							null,
 							9689492541901298,
@@ -46221,7 +42611,7 @@ false,true,3989474741624965,false
 							],
 							[
 							[
-								54,
+								52,
 								cr.plugins_.Audio.prototype.acts.Play,
 								null,
 								3867519558486651,
@@ -46252,7 +42642,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								96,
+								91,
 								cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
 								null,
 								9284226563053634,
@@ -46281,7 +42671,7 @@ false,true,3989474741624965,false
 							7679824810130897,
 							[
 							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 								null,
 								0,
@@ -46338,7 +42728,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								48,
+								47,
 								cr.plugins_.Spritefont2.prototype.acts.SetText,
 								null,
 								8473556549296069,
@@ -46354,7 +42744,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								46,
+								45,
 								cr.plugins_.Spritefont2.prototype.acts.SetText,
 								null,
 								4575794770536812,
@@ -46370,7 +42760,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
 								null,
 								9299832593074731,
@@ -46390,14 +42780,14 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								35,
+								34,
 								cr.plugins_.Sprite.prototype.acts.Destroy,
 								null,
 								834396463810499,
 								false
 							]
 ,							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.acts.SetAnim,
 								null,
 								7097840867752793,
@@ -46449,7 +42839,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								5,
@@ -46485,7 +42875,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetCurrentSpeed,
 							"MoveTo",
 							3298291935651467,
@@ -46501,7 +42891,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.behaviors.Rex_MoveTo.prototype.acts.SetTargetPos,
 							"MoveTo",
 							694675084773412,
@@ -46511,7 +42901,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -46534,7 +42924,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							1830548261608062,
@@ -46551,7 +42941,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetAngleOfMotion,
 							"Bullet",
 							1252656683272272,
@@ -46567,7 +42957,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							1739275376569962,
@@ -46591,7 +42981,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 ,							[
 								5,
@@ -46604,7 +42994,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -46614,7 +43004,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.Y,
 									false,
 									null
@@ -46623,7 +43013,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.behaviors.Pin.prototype.acts.Pin,
 							"Pin",
 							3370197046736688,
@@ -46631,7 +43021,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								3,
@@ -46640,7 +43030,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							3138085063424402,
@@ -46693,14 +43083,14 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.MoveToBottom,
 							null,
 							8706933920276833,
 							false
 						]
 ,						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.SetAnim,
 							null,
 							7526868569326951,
@@ -46720,7 +43110,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.SetAnimFrame,
 							null,
 							6665609820698913,
@@ -46736,7 +43126,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							70,
+							68,
 							cr.plugins_.Sprite.prototype.acts.SetAnimSpeed,
 							null,
 							5746203407896423,
@@ -46798,7 +43188,7 @@ false,true,3989474741624965,false
 							],
 							[
 							[
-								54,
+								52,
 								cr.plugins_.Audio.prototype.acts.Play,
 								null,
 								7206319589392428,
@@ -46829,7 +43219,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								96,
+								91,
 								cr.plugins_.PhonegapVibration.prototype.acts.Vibrate,
 								null,
 								600862327531292,
@@ -46858,7 +43248,7 @@ false,true,3989474741624965,false
 							7244824361317707,
 							[
 							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 								null,
 								0,
@@ -46915,7 +43305,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								48,
+								47,
 								cr.plugins_.Spritefont2.prototype.acts.SetText,
 								null,
 								6541910475818712,
@@ -46931,7 +43321,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								46,
+								45,
 								cr.plugins_.Spritefont2.prototype.acts.SetText,
 								null,
 								7949270678875922,
@@ -46947,7 +43337,7 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
 								null,
 								3020251277241579,
@@ -46983,14 +43373,14 @@ false,true,3989474741624965,false
 								]
 							]
 ,							[
-								35,
+								34,
 								cr.plugins_.Sprite.prototype.acts.Destroy,
 								null,
 								1825593273762768,
 								false
 							]
 ,							[
-								34,
+								33,
 								cr.plugins_.Sprite.prototype.acts.SetAnim,
 								null,
 								6059601003923017,
@@ -47140,7 +43530,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								39
+								38
 							]
 ,							[
 								5,
@@ -47176,7 +43566,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							39,
+							38,
 							cr.behaviors.Bullet.prototype.acts.SetAngleOfMotion,
 							"Bullet",
 							124957169469583,
@@ -47192,7 +43582,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							39,
+							38,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							1672405848017315,
@@ -47216,7 +43606,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 ,							[
 								5,
@@ -47229,7 +43619,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									39,
+									38,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -47239,7 +43629,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									39,
+									38,
 									cr.plugins_.Sprite.prototype.exps.Y,
 									false,
 									null
@@ -47248,7 +43638,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.behaviors.Pin.prototype.acts.Pin,
 							"Pin",
 							4995663124251867,
@@ -47256,7 +43646,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								39
+								38
 							]
 ,							[
 								3,
@@ -47315,7 +43705,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								5,
@@ -47351,7 +43741,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							9530666978650422,
@@ -47368,7 +43758,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetAngleOfMotion,
 							"Bullet",
 							5601323826218815,
@@ -47384,7 +43774,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							34,
+							33,
 							cr.behaviors.Bullet.prototype.acts.SetSpeed,
 							"Bullet",
 							6166784098110334,
@@ -47408,7 +43798,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								35
+								34
 							]
 ,							[
 								5,
@@ -47421,7 +43811,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.X,
 									false,
 									null
@@ -47431,7 +43821,7 @@ false,true,3989474741624965,false
 								0,
 								[
 									20,
-									34,
+									33,
 									cr.plugins_.Sprite.prototype.exps.Y,
 									false,
 									null
@@ -47440,7 +43830,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.plugins_.Sprite.prototype.acts.SetBoolInstanceVar,
 							null,
 							5177559598801229,
@@ -47457,7 +43847,7 @@ false,true,3989474741624965,false
 							]
 						]
 ,						[
-							35,
+							34,
 							cr.behaviors.Pin.prototype.acts.Pin,
 							"Pin",
 							7351088422512291,
@@ -47465,7 +43855,7 @@ false,true,3989474741624965,false
 							,[
 							[
 								4,
-								34
+								33
 							]
 ,							[
 								3,
@@ -47570,7 +43960,7 @@ false,true,3989474741624965,false
 				],
 				[
 				[
-					54,
+					52,
 					cr.plugins_.Audio.prototype.acts.StopAll,
 					null,
 					5727420431414987,
@@ -47617,28 +44007,28 @@ false,true,3989474741624965,false
 					]
 				]
 ,				[
-					34,
+					33,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					9842850860193764,
 					false
 				]
 ,				[
-					39,
+					38,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					107503354742743,
 					false
 				]
 ,				[
-					35,
+					34,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					9029048961358141,
 					false
 				]
 ,				[
-					47,
+					46,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					6183253781180642,
@@ -47651,7 +44041,7 @@ false,true,3989474741624965,false
 					]
 				]
 ,				[
-					50,
+					49,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1272798603086575,
@@ -47686,7 +44076,7 @@ false,true,3989474741624965,false
 					],
 					[
 					[
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.acts.Request,
 						null,
 						1840500513214668,
@@ -47736,7 +44126,7 @@ false,true,3989474741624965,false
 										,[
 [
 											20,
-											77,
+											75,
 											cr.plugins_.CBhash.prototype.exps.MD5,
 											true,
 											null
@@ -47909,7 +44299,7 @@ false,true,3989474741624965,false
 				7505297371712187,
 				[
 				[
-					34,
+					33,
 					cr.plugins_.Sprite.prototype.cnds.OnCollision,
 					null,
 					0,
@@ -47921,14 +44311,14 @@ false,true,3989474741624965,false
 					,[
 					[
 						4,
-						52
+						51
 					]
 					]
 				]
 				],
 				[
 				[
-					34,
+					33,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					4639258801768561,
@@ -47944,7 +44334,7 @@ false,true,3989474741624965,false
 					9122298209548578,
 					[
 					[
-						34,
+						33,
 						cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 						null,
 						0,
@@ -48001,7 +44391,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						51,
+						50,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						6681156492993473,
@@ -48028,7 +44418,7 @@ false,true,3989474741624965,false
 				1570082981534204,
 				[
 				[
-					39,
+					38,
 					cr.plugins_.Sprite.prototype.cnds.OnCollision,
 					null,
 					0,
@@ -48040,14 +44430,14 @@ false,true,3989474741624965,false
 					,[
 					[
 						4,
-						52
+						51
 					]
 					]
 				]
 				],
 				[
 				[
-					39,
+					38,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					4009792533200544,
@@ -48063,7 +44453,7 @@ false,true,3989474741624965,false
 					3015543077935458,
 					[
 					[
-						39,
+						38,
 						cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 						null,
 						0,
@@ -48120,7 +44510,7 @@ false,true,3989474741624965,false
 						]
 					]
 ,					[
-						51,
+						50,
 						cr.plugins_.Spritefont2.prototype.acts.SetText,
 						null,
 						4738626705713131,
@@ -48147,7 +44537,7 @@ false,true,3989474741624965,false
 				4799566960362738,
 				[
 				[
-					35,
+					34,
 					cr.plugins_.Sprite.prototype.cnds.OnCollision,
 					null,
 					0,
@@ -48159,14 +44549,14 @@ false,true,3989474741624965,false
 					,[
 					[
 						4,
-						52
+						51
 					]
 					]
 				]
 				],
 				[
 				[
-					35,
+					34,
 					cr.plugins_.Sprite.prototype.acts.Destroy,
 					null,
 					9127524890188978,
@@ -48227,7 +44617,7 @@ false,true,3989474741624965,false
 				,[
 				[
 					4,
-					44
+					43
 				]
 				]
 			]
@@ -48256,7 +44646,7 @@ false,true,3989474741624965,false
 				],
 				[
 				[
-					81,
+					79,
 					cr.plugins_.Function.prototype.acts.CallFunction,
 					null,
 					1823459796029319,
@@ -48350,6 +44740,13 @@ false,false,6169774496615126,false
 false,false,809512405275699,false
 		]
 ,		[
+			1,
+			"GENERATE_IMAGE_URL",
+			1,
+			"http://apps.wwwiew.com/toortitzi/mobile/generate_image_cache_name/",
+false,true,8663412316852696,false
+		]
+,		[
 			0,
 			null,
 			false,
@@ -48370,7 +44767,7 @@ false,false,809512405275699,false
 			],
 			[
 			[
-				27,
+				26,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				6421123582156299,
@@ -48407,7 +44804,7 @@ false,false,809512405275699,false
 				]
 			]
 ,			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.acts.Request,
 				null,
 				7893929692632778,
@@ -48430,14 +44827,14 @@ false,false,809512405275699,false
 				]
 			]
 ,			[
-				95,
+				90,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				9204511214838202,
 				false
 			]
 ,			[
-				69,
+				67,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				1918980575085257,
@@ -48497,7 +44894,7 @@ false,false,809512405275699,false
 				],
 				[
 				[
-					99,
+					94,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1122421419878832,
@@ -48521,7 +44918,7 @@ false,false,809512405275699,false
 			938120757488029,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -48543,14 +44940,14 @@ false,false,809512405275699,false
 			],
 			[
 			[
-				95,
+				90,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				2449841598824843,
 				false
 			]
 ,			[
-				95,
+				90,
 				cr.plugins_.Arr.prototype.acts.JSONLoad,
 				null,
 				5214363075061846,
@@ -48560,7 +44957,7 @@ false,false,809512405275699,false
 					1,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -48589,7 +44986,7 @@ false,false,809512405275699,false
 				]
 			]
 ,			[
-				99,
+				94,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				7472053416006804,
@@ -48650,7 +45047,7 @@ false,false,809512405275699,false
 				1304063503302128,
 				[
 				[
-					64,
+					62,
 					cr.plugins_.AJAX.prototype.cnds.OnComplete,
 					null,
 					1,
@@ -48681,7 +45078,7 @@ false,false,809512405275699,false
 					1632787662943639,
 					[
 					[
-						95,
+						90,
 						cr.plugins_.Arr.prototype.cnds.ArrForEach,
 						null,
 						0,
@@ -48723,7 +45120,7 @@ false,false,809512405275699,false
 								7,
 								[
 									20,
-									95,
+									90,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -48754,7 +45151,7 @@ false,false,809512405275699,false
 							844071091885992,
 							[
 							[
-								95,
+								90,
 								cr.plugins_.Arr.prototype.cnds.CompareCurrent,
 								null,
 								0,
@@ -48800,7 +45197,7 @@ false,false,809512405275699,false
 								]
 							]
 ,							[
-								94,
+								89,
 								cr.plugins_.Sprite.prototype.acts.SetVisible,
 								null,
 								4496904379522126,
@@ -48854,7 +45251,7 @@ false,false,809512405275699,false
 						],
 						[
 						[
-							76,
+							74,
 							cr.plugins_.Sprite.prototype.acts.SetVisible,
 							null,
 							7825397017831562,
@@ -48890,7 +45287,7 @@ false,false,809512405275699,false
 									7,
 									[
 										20,
-										95,
+										90,
 										cr.plugins_.Arr.prototype.exps.CurY,
 										false,
 										null
@@ -48998,7 +45395,7 @@ false,false,809512405275699,false
 										]
 										,[
 											20,
-											95,
+											90,
 											cr.plugins_.Arr.prototype.exps.CurValue,
 											false,
 											null
@@ -49077,7 +45474,7 @@ false,false,809512405275699,false
 									7,
 									[
 										20,
-										95,
+										90,
 										cr.plugins_.Arr.prototype.exps.CurY,
 										false,
 										null
@@ -49179,7 +45576,7 @@ false,false,809512405275699,false
 									7,
 									[
 										20,
-										95,
+										90,
 										cr.plugins_.Arr.prototype.exps.CurValue,
 										false,
 										null
@@ -49257,7 +45654,7 @@ false,false,809512405275699,false
 									7,
 									[
 										20,
-										95,
+										90,
 										cr.plugins_.Arr.prototype.exps.CurY,
 										false,
 										null
@@ -49288,7 +45685,7 @@ false,false,809512405275699,false
 								1262216337213588,
 								[
 								[
-									95,
+									90,
 									cr.plugins_.Arr.prototype.cnds.CompareCurrent,
 									null,
 									0,
@@ -49314,7 +45711,7 @@ false,false,809512405275699,false
 								],
 								[
 								[
-									91,
+									86,
 									cr.plugins_.Sprite.prototype.acts.SetVisible,
 									null,
 									2751093162217534,
@@ -49349,55 +45746,51 @@ false,false,809512405275699,false
 								],
 								[
 								[
-									13,
-									cr.plugins_.Sprite.prototype.acts.LoadURL,
+									62,
+									cr.plugins_.AJAX.prototype.acts.Request,
 									null,
-									1621558061601958,
+									1841950233269884,
 									false
 									,[
 									[
 										1,
 										[
-											10,
-											[
-												10,
-												[
-													23,
-													"IMAGE_URL"
-												]
-												,[
-													19,
-													cr.system_object.prototype.exps.str
-													,[
-[
-														20,
-														95,
-														cr.plugins_.Arr.prototype.exps.At,
-														false,
-														null
-														,[
-[
-															0,
-															0
-														]
-,[
-															0,
-															1
-														]
-														]
-													]
-													]
-												]
-											]
-											,[
-												2,
-												"/profile_photo.jpeg"
-											]
+											2,
+											"ImageData"
 										]
 									]
 ,									[
-										3,
-										1
+										1,
+										[
+											10,
+											[
+												23,
+												"GENERATE_IMAGE_URL"
+											]
+											,[
+												19,
+												cr.system_object.prototype.exps.str
+												,[
+[
+													20,
+													90,
+													cr.plugins_.Arr.prototype.exps.At,
+													false,
+													null
+													,[
+[
+														0,
+														0
+													]
+,[
+														0,
+														1
+													]
+													]
+												]
+												]
+											]
+										]
 									]
 									]
 								]
@@ -49408,6 +45801,60 @@ false,false,809512405275699,false
 						]
 					]
 					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			null,
+			1846252451717577,
+			[
+			[
+				62,
+				cr.plugins_.AJAX.prototype.cnds.OnComplete,
+				null,
+				1,
+				false,
+				false,
+				false,
+				854229931169179,
+				false
+				,[
+				[
+					1,
+					[
+						2,
+						"ImageData"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				13,
+				cr.plugins_.Sprite.prototype.acts.LoadURL,
+				null,
+				1621558061601958,
+				false
+				,[
+				[
+					1,
+					[
+						20,
+						62,
+						cr.plugins_.AJAX.prototype.exps.LastData,
+						true,
+						null
+					]
+				]
+,				[
+					3,
+					1
 				]
 				]
 			]
@@ -49465,7 +45912,7 @@ false,false,1577116274648502,false
 			],
 			[
 			[
-				29,
+				28,
 				cr.behaviors.Rex_Button2.prototype.acts.SetDisplay,
 				"Button",
 				551589213263186,
@@ -49502,7 +45949,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.acts.Request,
 				null,
 				6455713546105925,
@@ -49525,28 +45972,28 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				6946287023827226,
 				false
 			]
 ,			[
-				69,
+				67,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				542785087409581,
 				false
 			]
 ,			[
-				95,
+				90,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				7785976417795281,
 				false
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				5371532354077104,
@@ -49576,7 +46023,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				1140903730244742,
@@ -49606,7 +46053,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				7838759287254705,
@@ -49636,7 +46083,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				8486555834347608,
@@ -49666,7 +46113,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				3268295654637328,
@@ -49696,7 +46143,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				7041794262555742,
@@ -49726,7 +46173,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				703846838465206,
@@ -49756,7 +46203,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				74,
+				72,
 				cr.plugins_.Arr.prototype.acts.SetXY,
 				null,
 				3662747208196298,
@@ -49807,7 +46254,7 @@ false,false,1577116274648502,false
 				false
 			]
 ,			[
-				84,
+				82,
 				cr.plugins_.Text.prototype.acts.Destroy,
 				null,
 				580275639256613,
@@ -49853,7 +46300,7 @@ false,false,1577116274648502,false
 				],
 				[
 				[
-					99,
+					94,
 					cr.plugins_.Sprite.prototype.acts.SetVisible,
 					null,
 					1860624581902593,
@@ -49877,7 +46324,7 @@ false,false,1577116274648502,false
 			1943771201856453,
 			[
 			[
-				64,
+				62,
 				cr.plugins_.AJAX.prototype.cnds.OnComplete,
 				null,
 				1,
@@ -49899,14 +46346,14 @@ false,false,1577116274648502,false
 			],
 			[
 			[
-				69,
+				67,
 				cr.plugins_.Arr.prototype.acts.Clear,
 				null,
 				6925501880669849,
 				false
 			]
 ,			[
-				69,
+				67,
 				cr.plugins_.Arr.prototype.acts.JSONLoad,
 				null,
 				8630657029360652,
@@ -49916,7 +46363,7 @@ false,false,1577116274648502,false
 					1,
 					[
 						20,
-						64,
+						62,
 						cr.plugins_.AJAX.prototype.exps.LastData,
 						true,
 						null
@@ -49945,7 +46392,7 @@ false,false,1577116274648502,false
 				]
 			]
 ,			[
-				99,
+				94,
 				cr.plugins_.Sprite.prototype.acts.SetVisible,
 				null,
 				5719929457686478,
@@ -50006,7 +46453,7 @@ false,false,1577116274648502,false
 				1004625720099536,
 				[
 				[
-					64,
+					62,
 					cr.plugins_.AJAX.prototype.cnds.OnComplete,
 					null,
 					1,
@@ -50037,7 +46484,7 @@ false,false,1577116274648502,false
 					8911801697522232,
 					[
 					[
-						69,
+						67,
 						cr.plugins_.Arr.prototype.cnds.ArrForEach,
 						null,
 						0,
@@ -50079,7 +46526,7 @@ false,false,1577116274648502,false
 								7,
 								[
 									20,
-									69,
+									67,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -50122,21 +46569,21 @@ false,false,1577116274648502,false
 								0,
 								[
 									20,
-									74,
+									72,
 									cr.plugins_.Arr.prototype.exps.At,
 									false,
 									null
 									,[
 [
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
 									]
 ,[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurY,
 										false,
 										null
@@ -50148,14 +46595,14 @@ false,false,1577116274648502,false
 								0,
 								[
 									20,
-									74,
+									72,
 									cr.plugins_.Arr.prototype.exps.At,
 									false,
 									null
 									,[
 [
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
@@ -50164,7 +46611,7 @@ false,false,1577116274648502,false
 										4,
 										[
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurY,
 											false,
 											null
@@ -50203,7 +46650,7 @@ false,false,1577116274648502,false
 									7,
 									[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
@@ -50247,7 +46694,7 @@ false,false,1577116274648502,false
 												,[
 [
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurValue,
 													false,
 													null
@@ -50291,7 +46738,7 @@ false,false,1577116274648502,false
 									7,
 									[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
@@ -50335,7 +46782,7 @@ false,false,1577116274648502,false
 												,[
 [
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurValue,
 													false,
 													null
@@ -50379,7 +46826,7 @@ false,false,1577116274648502,false
 									7,
 									[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
@@ -50423,7 +46870,7 @@ false,false,1577116274648502,false
 												,[
 [
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurValue,
 													false,
 													null
@@ -50467,7 +46914,7 @@ false,false,1577116274648502,false
 									7,
 									[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurX,
 										false,
 										null
@@ -50511,7 +46958,7 @@ false,false,1577116274648502,false
 												,[
 [
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurValue,
 													false,
 													null
@@ -50557,7 +47004,7 @@ false,false,1577116274648502,false
 								7,
 								[
 									20,
-									69,
+									67,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -50602,14 +47049,14 @@ false,false,1577116274648502,false
 									4,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
@@ -50618,7 +47065,7 @@ false,false,1577116274648502,false
 											5,
 											[
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurY,
 												false,
 												null
@@ -50642,21 +47089,21 @@ false,false,1577116274648502,false
 									4,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
 										]
 ,[
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurY,
 											false,
 											null
@@ -50730,7 +47177,7 @@ false,false,1577116274648502,false
 										]
 										,[
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurValue,
 											false,
 											null
@@ -50811,7 +47258,7 @@ false,false,1577116274648502,false
 								7,
 								[
 									20,
-									69,
+									67,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -50856,14 +47303,14 @@ false,false,1577116274648502,false
 									4,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
@@ -50872,7 +47319,7 @@ false,false,1577116274648502,false
 											5,
 											[
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurY,
 												false,
 												null
@@ -50896,14 +47343,14 @@ false,false,1577116274648502,false
 									4,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
@@ -50912,7 +47359,7 @@ false,false,1577116274648502,false
 											5,
 											[
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurY,
 												false,
 												null
@@ -50985,7 +47432,7 @@ false,false,1577116274648502,false
 									7,
 									[
 										20,
-										69,
+										67,
 										cr.plugins_.Arr.prototype.exps.CurValue,
 										false,
 										null
@@ -51065,7 +47512,7 @@ false,false,1577116274648502,false
 								7,
 								[
 									20,
-									69,
+									67,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -51095,7 +47542,7 @@ false,false,1577116274648502,false
 							,[
 							[
 								4,
-								84
+								82
 							]
 ,							[
 								5,
@@ -51110,14 +47557,14 @@ false,false,1577116274648502,false
 									5,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
@@ -51126,7 +47573,7 @@ false,false,1577116274648502,false
 											5,
 											[
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurY,
 												false,
 												null
@@ -51150,14 +47597,14 @@ false,false,1577116274648502,false
 									4,
 									[
 										20,
-										74,
+										72,
 										cr.plugins_.Arr.prototype.exps.At,
 										false,
 										null
 										,[
 [
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurX,
 											false,
 											null
@@ -51166,7 +47613,7 @@ false,false,1577116274648502,false
 											5,
 											[
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurY,
 												false,
 												null
@@ -51196,7 +47643,7 @@ false,false,1577116274648502,false
 							1109752632044952,
 							[
 							[
-								84,
+								82,
 								cr.plugins_.Text.prototype.cnds.IsOnScreen,
 								null,
 								0,
@@ -51209,7 +47656,7 @@ false,false,1577116274648502,false
 							],
 							[
 							[
-								84,
+								82,
 								cr.plugins_.Text.prototype.acts.SetFontFace,
 								null,
 								632157233716165,
@@ -51229,7 +47676,7 @@ false,false,1577116274648502,false
 								]
 							]
 ,							[
-								84,
+								82,
 								cr.plugins_.Text.prototype.acts.SetText,
 								null,
 								6227424999694296,
@@ -51245,7 +47692,7 @@ false,false,1577116274648502,false
 										]
 										,[
 											20,
-											69,
+											67,
 											cr.plugins_.Arr.prototype.exps.CurValue,
 											false,
 											null
@@ -51255,7 +47702,7 @@ false,false,1577116274648502,false
 								]
 							]
 ,							[
-								84,
+								82,
 								cr.plugins_.Text.prototype.acts.SetFontSize,
 								null,
 								1588709634614384,
@@ -51271,7 +47718,7 @@ false,false,1577116274648502,false
 								]
 							]
 ,							[
-								84,
+								82,
 								cr.plugins_.Text.prototype.acts.SetFontColor,
 								null,
 								2898296163233377,
@@ -51326,7 +47773,7 @@ false,false,1577116274648502,false
 								7,
 								[
 									20,
-									69,
+									67,
 									cr.plugins_.Arr.prototype.exps.CurY,
 									false,
 									null
@@ -51357,7 +47804,7 @@ false,false,1577116274648502,false
 							2050606732109737,
 							[
 							[
-								69,
+								67,
 								cr.plugins_.Arr.prototype.cnds.CompareCurrent,
 								null,
 								0,
@@ -51391,7 +47838,7 @@ false,false,1577116274648502,false
 								,[
 								[
 									4,
-									92
+									87
 								]
 ,								[
 									5,
@@ -51406,14 +47853,14 @@ false,false,1577116274648502,false
 										4,
 										[
 											20,
-											74,
+											72,
 											cr.plugins_.Arr.prototype.exps.At,
 											false,
 											null
 											,[
 [
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurX,
 												false,
 												null
@@ -51422,7 +47869,7 @@ false,false,1577116274648502,false
 												5,
 												[
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurY,
 													false,
 													null
@@ -51446,14 +47893,14 @@ false,false,1577116274648502,false
 										4,
 										[
 											20,
-											74,
+											72,
 											cr.plugins_.Arr.prototype.exps.At,
 											false,
 											null
 											,[
 [
 												20,
-												69,
+												67,
 												cr.plugins_.Arr.prototype.exps.CurX,
 												false,
 												null
@@ -51462,7 +47909,7 @@ false,false,1577116274648502,false
 												5,
 												[
 													20,
-													69,
+													67,
 													cr.plugins_.Arr.prototype.exps.CurY,
 													false,
 													null
